@@ -40,12 +40,42 @@ colSums(is.na(df))
 df$START_DATE_2 <- df$START_DATE_2 == "" | is.na(df$START_DATE_2)
 df <- df %>% rename(MULTIPLE_START_DATES = START_DATE_2)
 
-unique_values <- unique(df$ZIPCODE)
+unique_values <- unique(df$EVENT_MONTH)
 # unique_values <- unique(df$OMV_TUE_START_TIME)
 unique_values
 
 # table(df$OMV_TUE_END_TIME)
 # table(df$ISSUED_BY)
 
+
+```
+
+
+```{r}
+# GREG 
+
+```
+
+
+```{r}
+# ESHI 
+
+```
+
+
+```{r}
+# DANIEL 
+
+```
+
+
+```{r}
+# NNEOMA 
+
+```
+
+
+```{r}
+# MAADHAV 
 
 ```
