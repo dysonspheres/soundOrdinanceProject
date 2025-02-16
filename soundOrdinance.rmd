@@ -10,24 +10,42 @@ output:
     std_out_err: TRUE
 knit: reprex::reprex_render
 ---
-
-This template demonstrates many of the bells and whistles of the `reprex::reprex_document()` output format. The YAML sets many options to non-default values, such as using `#;-)` as the comment in front of output.
-
-## Code style
-
-Since `style` is `TRUE`, this difficult-to-read code (look at the `.Rmd` source file) will be restyled according to the Tidyverse style guide when it's rendered. Whitespace rationing is not in effect!
-
+## Data Cleaning
+We decided to remove these columns: CASE_TYPE, FOLDER_TYPE, WORK, PERMIT_NUMBER, REFERENCEFILE, FOLDERRSN, LINK, APPLICANT_FIRST_NAME, APPLICANT_LAST_NAME, END_HOURS_MOV_VEH_MON_SAT, END_HOURS_MOV_VEH_SUN, PROPERTYRSN, START_HOURS_MOV_VEH_MON_SAT, START_HOURS_MOV_VEH_SUN, PROPX, PROPY, LOCATION, UPDATE_DATE, FOLDER_DESCRIPTION
 ```{r}
-x=1;y=2;z=x+y;z
+library(dplyr)
+
+df <- read.csv("sound_ordinance_data.csv", na.strings = c("", "NA")) # ensured that blank strings are counting as NA
+
+columns_to_remove <- c("CASE_TYPE", "FOLDER_TYPE", "WORK", "PERMIT_NUMBER", "REFERENCEFILE", "FOLDERRSN", "LINK", 
+  "APPLICANT_FIRST_NAME", "APPLICANT_LAST_NAME","END_HOURS_MOV_VEH_MON_SAT", "END_HOURS_MOV_VEH_SUN", 
+  "PROPERTYRSN", "START_HOURS_MOV_VEH_MON_SAT", "START_HOURS_MOV_VEH_SUN", "PROPX", "PROPY", "LOCATION", "UPDATE_DATE", "FOLDER_DESCRIPTION",
+  "FOLDER_NAME", "EVENT_YEAR", "APPLICANT_ORGANIZATION", "START_DATE_3", "START_DATE_4")
+
+df <- df %>% select(-all_of(columns_to_remove))
+
+
+df <- df %>% rename(EVENT_YEAR = CALENDAR_YEAR_FOLDER_CREATED)
+df <- df %>% filter(!is.na(COUNCIL_DISTRICT))
+df <- df %>% filter(!is.na(CALENDAR_YEAR_FOLDER_CREATED))
+df <- df %>% filter(!is.na(EVENT_YEAR))
+df <- df %>% filter(!is.na(EXISTING_ZONING))
+df <- df %>% filter(!is.na(ISSUED_BY))
+
+# unique_counts <- sapply(df, function(col), length(unique(col)))
+# print(unique_counts)
+
+colSums(is.na(df))
+
+df$START_DATE_2 <- df$START_DATE_2 == "" | is.na(df$START_DATE_2)
+df <- df %>% rename(MULTIPLE_START_DATES = START_DATE_2)
+
+unique_values <- unique(df$ZIPCODE)
+# unique_values <- unique(df$OMV_TUE_START_TIME)
+unique_values
+
+# table(df$OMV_TUE_END_TIME)
+# table(df$ISSUED_BY)
+
+
 ```
-
-## Quiet tidyverse
-
-The tidyverse meta-package is quite chatty at startup, which can be very useful in exploratory, interactive work. It is often less useful in a reprex, so by default, we suppress this.
-
-However, when `tidyverse_quiet` is `FALSE`, the rendered result will include a tidyverse startup message about package versions and function masking.
-
-```{r, eval = requireNamespace("tidyverse", quietly = TRUE)}
-library(tidyverse)
-```
-
