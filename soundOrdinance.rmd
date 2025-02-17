@@ -70,13 +70,31 @@ unique_values
 ```
 
 Nneoma is cleaning the values START_HOURS_NOT_NEAR_HOME, END_HOURS_NOT_NEAR_HOME, STATUS, EXPIRATION_DATE	(YYYY-MM-DD),
-IN_DATE (YYYY-MM-DD), ISSUE_DATE	ISSUED_BY (YYYY-MM-DD), START_DATE, and has_multiple_start_dates
+IN_DATE (YYYY-MM-DD), ISSUE_DATE, ISSUED_BY (YYYY-MM-DD), START_DATE, and has_multiple_start_dates
 ```{r}
 # NNEOMA 
 #nrow(df)
-# START_DATE has 1,458 missing values -- if event month is blank, then start_date will be blank
-df$START_DATE
-df %>% filter(is.na(df$START_DATE)) %>% select(START_DATE, EVENT_YEAR, EVENT_MONTH)
+#************** START_DATE has 1,458 missing values -- if event month is blank, then start_date will be blank
+#df$START_DATE
+unique(df$START_DATE)
+df %>% filter(is.na(df$START_DATE)) %>% select(START_DATE, STATUS) #checking cols of null start_date
+
+#ISSUE DATE -- everything is clean and no missing values
+unique(df$ISSUE_DATE)
+df %>% select(ISSUE_DATE)  #%>%  filter(is.na(ISSUE_DATE))#checking cols of null start_date
+
+#IN DATE -- everything is clean and no missing values
+unique(df$IN_DATE)
+df %>% select(IN_DATE)#filter(is.na(IN_DATE))  %>%   #checking cols of null start_date
+head(df$IN_DATE, 1000)
+
+# *********EXPIRATION_DATE -- if start_date is NA, then ex_date is NA
+
+unique(df$EXPIRATION_DATE)
+df %>% filter(is.na(EXPIRATION_DATE) & STATUS=='Expired') %>% select(EXPIRATION_DATE, START_DATE, STATUS) #  %>% summarize(n())  #checking cols of null start_date
+head(df$EXPIRATION_DATE, 1000)
+
+
 head(df)
 ```
 
