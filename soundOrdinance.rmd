@@ -13,6 +13,7 @@ knit: reprex::reprex_render
 ## Data Cleaning
 We decided to remove these columns: CASE_TYPE, FOLDER_TYPE, WORK, PERMIT_NUMBER, REFERENCEFILE, FOLDERRSN, LINK, APPLICANT_FIRST_NAME, APPLICANT_LAST_NAME, END_HOURS_MOV_VEH_MON_SAT, END_HOURS_MOV_VEH_SUN, PROPERTYRSN, START_HOURS_MOV_VEH_MON_SAT, START_HOURS_MOV_VEH_SUN, PROPX, PROPY, LOCATION, UPDATE_DATE, FOLDER_DESCRIPTION
 ```{r}
+install.packages("dplyr")  # this was for Nneoma, since it wasn't working for you
 library(dplyr)
 
 df <- read.csv("sound_ordinance_data.csv", na.strings = c("", "NA")) # ensured that blank strings are counting as NA
@@ -72,7 +73,11 @@ Nneoma is cleaning the values START_HOURS_NOT_NEAR_HOME, END_HOURS_NOT_NEAR_HOME
 IN_DATE (YYYY-MM-DD), ISSUE_DATE	ISSUED_BY (YYYY-MM-DD), START_DATE, and has_multiple_start_dates
 ```{r}
 # NNEOMA 
-
+#nrow(df)
+# START_DATE has 1,458 missing values -- if event month is blank, then start_date will be blank
+df$START_DATE
+df %>% filter(is.na(df$START_DATE)) %>% select(START_DATE, EVENT_YEAR, EVENT_MONTH)
+head(df)
 ```
 
 
