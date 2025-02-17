@@ -94,6 +94,18 @@ unique(df$EXPIRATION_DATE)
 df %>% filter(is.na(EXPIRATION_DATE) & STATUS=='Expired') %>% select(EXPIRATION_DATE, START_DATE, STATUS) #  %>% summarize(n())  #checking cols of null start_date
 head(df$EXPIRATION_DATE, 1000)
 
+# ISSUEd_BY -- everything is clean and no missing values
+table(df$ISSUED_BY)
+unique(df$ISSUED_BY)
+df %>% filter(is.na(ISSUED_BY))# %>% select(EXPIRATION_DATE, START_DATE, STATUS) #  %>% summarize(n())  #checking cols of null start_date
+head(df, 1)
+
+# MULTIPLE_START_DATES
+table(df$MULTIPLE_START_DATES)
+unique(df$MULTIPLE_START_DATES)
+df$MULTIPLE_START_DATES
+df %>% filter(is.na(ISSUED_BY))# %>% select(EXPIRATION_DATE, START_DATE, STATUS) #  %>% summarize(n())  #checking cols of null start_date
+head(df, 1)
 
 head(df)
 ```
