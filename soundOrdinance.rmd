@@ -13,7 +13,7 @@ knit: reprex::reprex_render
 ## Data Cleaning
 We decided to remove these columns: CASE_TYPE, FOLDER_TYPE, WORK, PERMIT_NUMBER, REFERENCEFILE, FOLDERRSN, LINK, APPLICANT_FIRST_NAME, APPLICANT_LAST_NAME, END_HOURS_MOV_VEH_MON_SAT, END_HOURS_MOV_VEH_SUN, PROPERTYRSN, START_HOURS_MOV_VEH_MON_SAT, START_HOURS_MOV_VEH_SUN, PROPX, PROPY, LOCATION, UPDATE_DATE, FOLDER_DESCRIPTION
 ```{r}
-install.packages("dplyr")  # this was for Nneoma, since it wasn't working for you
+# install.packages("dplyr")  # this was for Nneoma, since it wasn't working for you
 library(dplyr)
 
 df <- read.csv("sound_ordinance_data.csv", na.strings = c("", "NA")) # ensured that blank strings are counting as NA
@@ -37,8 +37,9 @@ df <- df %>% filter(!is.na(ISSUED_BY))
 # print(unique_counts)
 
 colSums(is.na(df))
+df$START_DATE_2 <- !(df$START_DATE_2 == "" | is.na(df$START_DATE_2)) # flipped it to make majority of set false instead of true
 
-df$START_DATE_2 <- df$START_DATE_2 == "" | is.na(df$START_DATE_2)
+
 df <- df %>% rename(MULTIPLE_START_DATES = START_DATE_2)
 
 unique_values <- unique(df$EVENT_MONTH)
