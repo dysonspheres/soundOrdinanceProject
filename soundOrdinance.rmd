@@ -60,10 +60,17 @@ convert_time <- function(time) {
     return(NA)
   }
   time <- trimws(tolower(time))  # Make everything lowercase and remove extra spaces
+  if (time == 'midnight') {
+    return 0;
+  }
+  if (time == 'noon') {
+    return 12;
+  }
+  
   time <- gsub("[[:space:].]", "", tolower(time)) # Normalize time by removing spaces and periods
 
   am_or_pm <- substr(time, nchar(time) - 1, nchar(time)) # Check if the string ends with "am" or "pm"
-
+  time <- gsub(am_or_pm, "", time) #removes the end
    # Handle times like "6:30", "9:45", etc., by extracting only the hour
   if (grepl(":", time)) {
     time <- sub(":.*", "", time)  # Remove minutes, keep the hour part
@@ -77,16 +84,18 @@ convert_time <- function(time) {
     }
     return(as.numeric(time))
   } else if (am_or_pm == "pm") {
-    hour <- as.numeric(time)
-    if (hour == 12 || time == "noon") {
+    #hour <- as.numeric(time)
+    if (time == "12" || time == "noon") {
       return(12)  # If it's "12pm", return 12
     }
-    return(hour + 12)  # Add 12 for PM times
+    return(as.numeric(time) + 12)  # Add 12 for PM times
   } else {
     return(NA)  # If time format is unrecognized, return the original string
   }
   
 }
+
+
 ```
 
 
@@ -149,16 +158,22 @@ df$START_HOURS_NOT_NEAR_HOME <- ifelse(df$START_HOURS_NOT_NEAR_HOME == 'Pending 
 
 table(df$START_HOURS_NOT_NEAR_HOME)
 
-test <- df %>% mutate(START_HOURS_NOT_NEAR_HOME = if_else(!is.na(START_HOURS_NOT_NEAR_HOME),sapply(START_HOURS_NOT_NEAR_HOME, convert_time), NA))
-table(test$START_HOURS_NOT_NEAR_HOME)
 
+vec <- sapply(df$START_HOURS_NOT_NEAR_HOME, convert_time)
+head(df$START_HOURS_NOT_NEAR_HOME,100)
+head(vec,100)
+
+test <- df %>%
+  mutate(START_HOURS_NOT_NEAR_HOME = vec)
+test %>% filter(!is.na(START_HOURS_NOT_NEAR_HOME)) %>% select(START_HOURS_NOT_NEAR_HOME)
+test$START_HOURS_NOT_NEAR_HOME
 
 
 df$START_HOURS_NOT_NEAR_HOME <- sapply(df$START_HOURS_NOT_NEAR_HOME, convert_time)
 table(df$START_HOURS_NOT_NEAR_HOME)
 
 
-unique(df$START_HOURS_NOT_NEAR_HOME)
+unique(test$START_HOURS_NOT_NEAR_HOME)
 df %>% filter(is.na(START_HOURS_NOT_NEAR_HOME)) %>% summarize(n())
 df %>% filter(START_HOURS_NOT_NEAR_HOME == 'Pending Review')# %>% select(EXPIRATION_DATE, START_DATE, STATUS) #  %>% summarize(n())  #checking cols of null start_date
 head(df, 1)
