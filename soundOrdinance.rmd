@@ -56,15 +56,15 @@ The convert_time method will be used to change hours into numbers
 # Nneoma's convert time method
 # Function to convert time strings to numbers
 convert_time <- function(time) {
-  if (is.na(time)) { #returns null values
+  if (is.na(time) || time == 'NA') { #returns null values
     return(NA)
   }
   time <- trimws(tolower(time))  # Make everything lowercase and remove extra spaces
   if (time == 'midnight') {
-    return 0;
+    return(0)
   }
   if (time == 'noon') {
-    return 12;
+    return(12)
   }
   
   time <- gsub("[[:space:].]", "", tolower(time)) # Normalize time by removing spaces and periods
@@ -163,9 +163,13 @@ vec <- sapply(df$START_HOURS_NOT_NEAR_HOME, convert_time)
 head(df$START_HOURS_NOT_NEAR_HOME,100)
 head(vec,100)
 
+
+df %>% filter(!is.na(START_HOURS_NOT_NEAR_HOME)) %>% select(START_HOURS_NOT_NEAR_HOME)
+
 test <- df %>%
-  mutate(START_HOURS_NOT_NEAR_HOME = vec)
+  mutate(START_HOURS_NOT_NEAR_HOME = sapply(df$START_HOURS_NOT_NEAR_HOME, convert_time))
 test %>% filter(!is.na(START_HOURS_NOT_NEAR_HOME)) %>% select(START_HOURS_NOT_NEAR_HOME)
+df$START_HOURS_NOT_NEAR_HOME
 test$START_HOURS_NOT_NEAR_HOME
 
 
