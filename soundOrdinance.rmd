@@ -152,13 +152,14 @@ head(df, 1)
 df_multiple_starts <- df %>% filter(MULTIPLE_START_DATES == TRUE)
 df_multiple_starts 
 
-# START_HOURS_NOT_NEAR_HOME --  converted string times into numeric numbers
+# *****START_HOURS_NOT_NEAR_HOME --  converted string times into numeric numbers
 # replaced that pending review with a NA value
 df$START_HOURS_NOT_NEAR_HOME <- ifelse(df$START_HOURS_NOT_NEAR_HOME == 'Pending Review', NA, df$START_HOURS_NOT_NEAR_HOME)
 df$START_HOURS_NOT_NEAR_HOME <- gsub("an", "am", df$START_HOURS_NOT_NEAR_HOME) # fixed a typo
+df$START_HOURS_NOT_NEAR_HOME <- ifelse(df$START_HOURS_NOT_NEAR_HOME == '12:00', "12:00 PM", df$START_HOURS_NOT_NEAR_HOME)
 
 df$START_HOURS_NOT_NEAR_HOME <- sapply(df$START_HOURS_NOT_NEAR_HOME, convert_time) # converting column to numbers
-df$START_HOURS_NOT_NEAR_HOME <- ifelse(test$START_HOURS_NOT_NEAR_HOME == -100, NA, test$START_HOURS_NOT_NEAR_HOME) #making -100 into NA
+#df$START_HOURS_NOT_NEAR_HOME <- ifelse(test$START_HOURS_NOT_NEAR_HOME == -100, NA, test$START_HOURS_NOT_NEAR_HOME) #making -100 into NA
 table(df$START_HOURS_NOT_NEAR_HOME)
 
 df %>% filter(!is.na(START_HOURS_NOT_NEAR_HOME)) %>% select(START_HOURS_NOT_NEAR_HOME)
