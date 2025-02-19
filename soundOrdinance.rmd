@@ -155,32 +155,22 @@ df_multiple_starts
 # ************START_HOURS_NOT_NEAR_HOME
 # replaced that pending review with a NA value
 df$START_HOURS_NOT_NEAR_HOME <- ifelse(df$START_HOURS_NOT_NEAR_HOME == 'Pending Review', NA, df$START_HOURS_NOT_NEAR_HOME)
-
+df$START_HOURS_NOT_NEAR_HOME <- gsub("an", "am", df$START_HOURS_NOT_NEAR_HOME)
 table(df$START_HOURS_NOT_NEAR_HOME)
-
+convert_time('8:00a')
 
 vec <- sapply(df$START_HOURS_NOT_NEAR_HOME, convert_time)
-head(df$START_HOURS_NOT_NEAR_HOME,100)
-head(vec,100)
 
+test$START_HOURS_NOT_NEAR_HOME <- vec
+test$START_HOURS_NOT_NEAR_HOME
+
+table(test$START_HOURS_NOT_NEAR_HOME)
 
 df %>% filter(!is.na(START_HOURS_NOT_NEAR_HOME)) %>% select(START_HOURS_NOT_NEAR_HOME)
 
-test <- df %>%
-  mutate(START_HOURS_NOT_NEAR_HOME = sapply(df$START_HOURS_NOT_NEAR_HOME, convert_time))
 test %>% filter(!is.na(START_HOURS_NOT_NEAR_HOME)) %>% select(START_HOURS_NOT_NEAR_HOME)
-df$START_HOURS_NOT_NEAR_HOME
-test$START_HOURS_NOT_NEAR_HOME
 
 
-df$START_HOURS_NOT_NEAR_HOME <- sapply(df$START_HOURS_NOT_NEAR_HOME, convert_time)
-table(df$START_HOURS_NOT_NEAR_HOME)
-
-
-unique(test$START_HOURS_NOT_NEAR_HOME)
-df %>% filter(is.na(START_HOURS_NOT_NEAR_HOME)) %>% summarize(n())
-df %>% filter(START_HOURS_NOT_NEAR_HOME == 'Pending Review')# %>% select(EXPIRATION_DATE, START_DATE, STATUS) #  %>% summarize(n())  #checking cols of null start_date
-head(df, 1)
 
 head(df)
 ```
