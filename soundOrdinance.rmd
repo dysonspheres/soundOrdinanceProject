@@ -22,7 +22,6 @@ columns_to_remove <- c("CASE_TYPE", "FOLDER_TYPE", "WORK", "PERMIT_NUMBER", "REF
   "APPLICANT_FIRST_NAME", "APPLICANT_LAST_NAME","END_HOURS_MOV_VEH_MON_SAT", "END_HOURS_MOV_VEH_SUN", 
   "PROPERTYRSN", "START_HOURS_MOV_VEH_MON_SAT", "START_HOURS_MOV_VEH_SUN", "PROPX", "PROPY", "LOCATION", "UPDATE_DATE", "FOLDER_DESCRIPTION",
   "FOLDER_NAME", "EVENT_YEAR", "APPLICANT_ORGANIZATION", "START_DATE_3", "START_DATE_4")
-
 df <- df %>% select(-all_of(columns_to_remove))
 
 
@@ -70,6 +69,71 @@ unique_values
 
 ```
 
+
+The convert_time method will be used to change hours into numbers
+```{r}
+
+# Function to convert time strings to numbers
+convert_time <- function(time) {
+  
+  time <- trimws(tolower(time))  # Make everything lowercase and remove extra spaces
+  time <- gsub("[[:space:].]", "", tolower(time)) # Normalize time by removing spaces and periods
+
+  
+  am_or_pm <- substr(time, nchar(time) - 1, nchar(time)) # Check if the string ends with "am" or "pm"
+  
+  if (ampm == "am") {
+    ampm <- "am"
+  } else if (ampm == "pm") {
+    ampm <- "pm"
+  } else {
+    ampm <- ""  # In case no AM/PM is found
+  }
+  
+
+  # Handle times like "6:30", "9:45", etc., by extracting only the hour
+  if (grepl(":", time)) {
+    time <- sub(":.*", "", time)  # Remove minutes, keep the hour part
+  }
+  
+  # Match the different time formats and return the appropriate numeric value
+  if (grepl("midnight|12:00a|12 am|12a", time)) {
+    return(0)
+  } else if (grepl("noon|12:00p|12 pm|12p", time)) {
+    return(12)
+  } else if (grepl("am", time)) {
+    time <- sub("am", "", time)  # Remove 'am'
+    time <- trimws(time)  # Trim extra spaces
+    if (time == "" || time == "12") {
+      return(0)  # If it's "12am", return 0
+    }
+    return(as.numeric(time))
+  } else if (grepl("pm", time)) {
+    time <- sub("pm", "", time)  # Remove 'pm'
+    time <- trimws(time)  # Trim extra spaces
+    hour <- as.numeric(time)
+    if (hour == 12) {
+      return(12)  # If it's "12pm", return 12
+    }
+    return(hour + 12)  # Add 12 for PM times
+  } else {
+    return(time)  # If time format is unrecognized, return the original string
+  }
+ 
+
+  
+ 
+  # Continue with time processing...
+}
+
+
+
+
+
+convert_time("11:54pm", '1am')
+
+```
+
 Nneoma is cleaning the values START_HOURS_NOT_NEAR_HOME, END_HOURS_NOT_NEAR_HOME, STATUS, EXPIRATION_DATE	(YYYY-MM-DD),
 IN_DATE (YYYY-MM-DD), ISSUE_DATE, ISSUED_BY (YYYY-MM-DD), START_DATE, and has_multiple_start_dates
 ```{r}
@@ -101,10 +165,15 @@ unique(df$ISSUED_BY)
 df %>% filter(is.na(ISSUED_BY))# %>% select(EXPIRATION_DATE, START_DATE, STATUS) #  %>% summarize(n())  #checking cols of null start_date
 head(df, 1)
 
-# MULTIPLE_START_DATES
-table(df$MULTIPLE_START_DATES)
-unique(df$MULTIPLE_START_DATES)
-df$MULTIPLE_START_DATES
+# MULTIPLE_START_DATES -- i am making a subset of rows that have multiple start dates
+df_multiple_starts <- df %>% filter(MULTIPLE_START_DATES == TRUE)
+df_multiple_starts 
+
+# ************START_HOURS_NOT_NEAR_HOME
+# remove tghngs with the wrong time
+# put time vector in funcyion
+table(df$START_HOURS_NOT_NEAR_HOME)
+unique(df$START_HOURS_NOT_NEAR_HOME)
 df %>% filter(is.na(ISSUED_BY))# %>% select(EXPIRATION_DATE, START_DATE, STATUS) #  %>% summarize(n())  #checking cols of null start_date
 head(df, 1)
 
