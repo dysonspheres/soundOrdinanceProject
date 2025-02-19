@@ -56,7 +56,9 @@ The convert_time method will be used to change hours into numbers
 # Nneoma's convert time method
 # Function to convert time strings to numbers
 convert_time <- function(time) {
-  
+  if (is.na(time)) { #returns null values
+    return(NA)
+  }
   time <- trimws(tolower(time))  # Make everything lowercase and remove extra spaces
   time <- gsub("[[:space:].]", "", tolower(time)) # Normalize time by removing spaces and periods
 
@@ -81,7 +83,7 @@ convert_time <- function(time) {
     }
     return(hour + 12)  # Add 12 for PM times
   } else {
-    return(time)  # If time format is unrecognized, return the original string
+    return(NA)  # If time format is unrecognized, return the original string
   }
   
 }
@@ -142,11 +144,23 @@ df_multiple_starts <- df %>% filter(MULTIPLE_START_DATES == TRUE)
 df_multiple_starts 
 
 # ************START_HOURS_NOT_NEAR_HOME
-# remove tghngs with the wrong time
-# put time vector in funcyion
+# replaced that pending review with a NA value
+df$START_HOURS_NOT_NEAR_HOME <- ifelse(df$START_HOURS_NOT_NEAR_HOME == 'Pending Review', NA, df$START_HOURS_NOT_NEAR_HOME)
+
 table(df$START_HOURS_NOT_NEAR_HOME)
+
+test <- df %>% mutate(START_HOURS_NOT_NEAR_HOME = if_else(!is.na(START_HOURS_NOT_NEAR_HOME),sapply(START_HOURS_NOT_NEAR_HOME, convert_time), NA))
+table(test$START_HOURS_NOT_NEAR_HOME)
+
+
+
+df$START_HOURS_NOT_NEAR_HOME <- sapply(df$START_HOURS_NOT_NEAR_HOME, convert_time)
+table(df$START_HOURS_NOT_NEAR_HOME)
+
+
 unique(df$START_HOURS_NOT_NEAR_HOME)
-df %>% filter(is.na(ISSUED_BY))# %>% select(EXPIRATION_DATE, START_DATE, STATUS) #  %>% summarize(n())  #checking cols of null start_date
+df %>% filter(is.na(START_HOURS_NOT_NEAR_HOME)) %>% summarize(n())
+df %>% filter(START_HOURS_NOT_NEAR_HOME == 'Pending Review')# %>% select(EXPIRATION_DATE, START_DATE, STATUS) #  %>% summarize(n())  #checking cols of null start_date
 head(df, 1)
 
 head(df)
