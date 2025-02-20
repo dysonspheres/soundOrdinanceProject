@@ -67,7 +67,7 @@ convert_time <- function(time) {
     return(12)
   }
   
-  time <- gsub("[[:space:].]", "", tolower(time)) # Normalize time by removing spaces and periods
+  time <- gsub("[[:space:].,]", "", tolower(time)) # Normalize time by removing spaces and periods
 
   am_or_pm <- substr(time, nchar(time) - 1, nchar(time)) # Check if the string ends with "am" or "pm"
   time <- gsub(am_or_pm, "", time) #removes the end
@@ -184,7 +184,7 @@ head(df, 1)
 df_multiple_starts <- df %>% filter(MULTIPLE_START_DATES == TRUE)
 df_multiple_starts 
 
-# *****START_HOURS_NOT_NEAR_HOME --  converted string times into numeric numbers
+# START_HOURS_NOT_NEAR_HOME --  converted string times into numeric numbers + created subset for them
 # replaced that pending review with a NA value
 df$START_HOURS_NOT_NEAR_HOME <- ifelse(df$START_HOURS_NOT_NEAR_HOME == 'Pending Review', NA, df$START_HOURS_NOT_NEAR_HOME)
 df$START_HOURS_NOT_NEAR_HOME <- gsub("an", "am", df$START_HOURS_NOT_NEAR_HOME) # fixed a typo
@@ -193,9 +193,23 @@ df$START_HOURS_NOT_NEAR_HOME <- ifelse(df$START_HOURS_NOT_NEAR_HOME == '12:00', 
 
 df$START_HOURS_NOT_NEAR_HOME <- sapply(df$START_HOURS_NOT_NEAR_HOME, convert_time) # converting column to numbers
 #df$START_HOURS_NOT_NEAR_HOME <- ifelse(test$START_HOURS_NOT_NEAR_HOME == -100, NA, test$START_HOURS_NOT_NEAR_HOME) #making -100 into NA
-table(df$START_HOURS_NOT_NEAR_HOME)
+df_start_hrs_not_home <- df %>% filter(!is.na(START_HOURS_NOT_NEAR_HOME)) # created a different subset
 
-df %>% filter(!is.na(START_HOURS_NOT_NEAR_HOME)) %>% select(START_HOURS_NOT_NEAR_HOME)
+df_start_hrs_not_home %>% summarize(n())
+
+# *********END_HOURS_NOT_NEAR_HOME
+table(df$END_HOURS_NOT_NEAR_HOME)
+# removed pending review
+df$END_HOURS_NOT_NEAR_HOME <- ifelse(df$END_HOURS_NOT_NEAR_HOME == 'Pending Review', NA, df$END_HOURS_NOT_NEAR_HOME)
+df$END_HOURS_NOT_NEAR_HOME <- gsub("A..M.", "am", df$END_HOURS_NOT_NEAR_HOME) # fixed a typo
+df$END_HOURS_NOT_NEAR_HOME <- gsub("12:00 noon", "12:00pm", df$END_HOURS_NOT_NEAR_HOME) # fixed a typo 
+df$END_HOURS_NOT_NEAR_HOME <- gsub("12am & 1am", "12:00am", df$END_HOURS_NOT_NEAR_HOME) #12AM 12AM,
+df$END_HOURS_NOT_NEAR_HOME <- gsub("12AM 12AM,", "12:00am", df$END_HOURS_NOT_NEAR_HOME) #12AM 12AM,
+
+df %>
+
+df$END_HOURS_NOT_NEAR_HOME <- sapply(df$END_HOURS_NOT_NEAR_HOME, convert_time) # converting column to numbers
+
 
 head(df)
 ```
