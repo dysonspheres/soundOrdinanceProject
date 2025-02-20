@@ -67,7 +67,7 @@ convert_time <- function(time) {
     return(12)
   }
   
-  time <- gsub("[[:space:].]", "", tolower(time)) # Normalize time by removing spaces and periods
+  time <- gsub("[[:space:].,]", "", tolower(time)) # Normalize time by removing spaces and periods
 
   am_or_pm <- substr(time, nchar(time) - 1, nchar(time)) # Check if the string ends with "am" or "pm"
   time <- gsub(am_or_pm, "", time) #removes the end
@@ -107,7 +107,39 @@ convert_time <- function(time) {
 
 ```{r}
 # ESHI 
+df$START_HOURS_NEAR_HOME_FRI_SAT <- sapply(df$START_HOURS_NEAR_HOME_FRI_SAT, convert_time)
+df <- df[df$START_HOURS_NEAR_HOME_FRI_SAT != "-100", ]
+table(df$START_HOURS_NEAR_HOME_FRI_SAT)
 
+df$END_HOURS_NEAR_HOME_FRI_SAT  <- sapply(df$END_HOURS_NEAR_HOME_FRI_SAT , convert_time)
+df <- df[df$END_HOURS_NEAR_HOME_FRI_SAT != "-100", ]
+table(df$END_HOURS_NEAR_HOME_FRI_SAT)
+
+df$START_HOURS_NEAR_HOME_SUN_THUR <- sapply(df$START_HOURS_NEAR_HOME_SUN_THUR, convert_time)
+table(df$START_HOURS_NEAR_HOME_SUN_THUR)
+
+df$END_HOURS_NEAR_HOME_SUN_THUR <- sapply(df$END_HOURS_NEAR_HOME_SUN_THUR, convert_time)
+df <- df[df$END_HOURS_NEAR_HOME_SUN_THUR != "-100", ]
+table(df$END_HOURS_NEAR_HOME_SUN_THUR)
+
+df <- df %>%
+  mutate(EXISTING_ZONING = case_when(
+    EXISTING_ZONING == "CBD - CENTRAL BUSINESS DISTRICT" ~ "CBD",
+    EXISTING_ZONING == "CS - GENERAL COMMERCIAL" ~ "CS",
+    EXISTING_ZONING == "SF-3 - FAMILY RESIDENCE" ~ "SF-3",
+    EXISTING_ZONING == "TOD - TRANSIT ORIENTED DEVELOPMENT ZONING" ~ "TOD",
+    EXISTING_ZONING == "CS-1 - LIQUOR SALES" ~ "CS-1",
+    EXISTING_ZONING == "CS-MU-CO-Np Gen. Commercial-Mixed Use-Con. Overlay-Nbrhd Plan Comb dist" ~ "CS-MU-CO-NP",
+    EXISTING_ZONING == "GR - COMMUNITY COMMERCIAL" ~ "GR",
+    EXISTING_ZONING == "LR-NP Neighborhood Commercial-Neighborhood Plan Combining district" ~ "LR-NP",
+    EXISTING_ZONING == "SF-3-NP - Family Residence-Neighborhood Plan Combining district" ~ "SF-3-NP",
+    EXISTING_ZONING == "DMU - DOWNTOWN MIXED USE" ~ "DMU",
+    TRUE ~ EXISTING_ZONING
+  ))
+unique(df$EXISTING_ZONING)
+
+df$STREET_ADDRESS <- gsub("^[0-9]+(?:-[0-9/]+)?\\s+", "", df$STREET_ADDRESS)
+unique(df$STREET_ADDRESS)
 ```
 
 
@@ -152,7 +184,7 @@ head(df, 1)
 df_multiple_starts <- df %>% filter(MULTIPLE_START_DATES == TRUE)
 df_multiple_starts 
 
-# *****START_HOURS_NOT_NEAR_HOME --  converted string times into numeric numbers
+# START_HOURS_NOT_NEAR_HOME --  converted string times into numeric numbers + created subset for them
 # replaced that pending review with a NA value
 df$START_HOURS_NOT_NEAR_HOME <- ifelse(df$START_HOURS_NOT_NEAR_HOME == 'Pending Review', NA, df$START_HOURS_NOT_NEAR_HOME)
 df$START_HOURS_NOT_NEAR_HOME <- gsub("an", "am", df$START_HOURS_NOT_NEAR_HOME) # fixed a typo
@@ -161,9 +193,23 @@ df$START_HOURS_NOT_NEAR_HOME <- ifelse(df$START_HOURS_NOT_NEAR_HOME == '12:00', 
 
 df$START_HOURS_NOT_NEAR_HOME <- sapply(df$START_HOURS_NOT_NEAR_HOME, convert_time) # converting column to numbers
 #df$START_HOURS_NOT_NEAR_HOME <- ifelse(test$START_HOURS_NOT_NEAR_HOME == -100, NA, test$START_HOURS_NOT_NEAR_HOME) #making -100 into NA
-table(df$START_HOURS_NOT_NEAR_HOME)
+df_start_hrs_not_home <- df %>% filter(!is.na(START_HOURS_NOT_NEAR_HOME)) # created a different subset
 
-df %>% filter(!is.na(START_HOURS_NOT_NEAR_HOME)) %>% select(START_HOURS_NOT_NEAR_HOME)
+df_start_hrs_not_home %>% summarize(n())
+
+# *********END_HOURS_NOT_NEAR_HOME
+table(df$END_HOURS_NOT_NEAR_HOME)
+# removed pending review
+df$END_HOURS_NOT_NEAR_HOME <- ifelse(df$END_HOURS_NOT_NEAR_HOME == 'Pending Review', NA, df$END_HOURS_NOT_NEAR_HOME)
+df$END_HOURS_NOT_NEAR_HOME <- gsub("A..M.", "am", df$END_HOURS_NOT_NEAR_HOME) # fixed a typo
+df$END_HOURS_NOT_NEAR_HOME <- gsub("12:00 noon", "12:00pm", df$END_HOURS_NOT_NEAR_HOME) # fixed a typo 
+df$END_HOURS_NOT_NEAR_HOME <- gsub("12am & 1am", "12:00am", df$END_HOURS_NOT_NEAR_HOME) #12AM 12AM,
+df$END_HOURS_NOT_NEAR_HOME <- gsub("12AM 12AM,", "12:00am", df$END_HOURS_NOT_NEAR_HOME) #12AM 12AM,
+
+df %>
+
+df$END_HOURS_NOT_NEAR_HOME <- sapply(df$END_HOURS_NOT_NEAR_HOME, convert_time) # converting column to numbers
+
 
 head(df)
 ```
