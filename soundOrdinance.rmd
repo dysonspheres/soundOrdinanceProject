@@ -107,7 +107,39 @@ convert_time <- function(time) {
 
 ```{r}
 # ESHI 
+df$START_HOURS_NEAR_HOME_FRI_SAT <- sapply(df$START_HOURS_NEAR_HOME_FRI_SAT, convert_time)
+df <- df[df$START_HOURS_NEAR_HOME_FRI_SAT != "-100", ]
+table(df$START_HOURS_NEAR_HOME_FRI_SAT)
 
+df$END_HOURS_NEAR_HOME_FRI_SAT  <- sapply(df$END_HOURS_NEAR_HOME_FRI_SAT , convert_time)
+df <- df[df$END_HOURS_NEAR_HOME_FRI_SAT != "-100", ]
+table(df$END_HOURS_NEAR_HOME_FRI_SAT)
+
+df$START_HOURS_NEAR_HOME_SUN_THUR <- sapply(df$START_HOURS_NEAR_HOME_SUN_THUR, convert_time)
+table(df$START_HOURS_NEAR_HOME_SUN_THUR)
+
+df$END_HOURS_NEAR_HOME_SUN_THUR <- sapply(df$END_HOURS_NEAR_HOME_SUN_THUR, convert_time)
+df <- df[df$END_HOURS_NEAR_HOME_SUN_THUR != "-100", ]
+table(df$END_HOURS_NEAR_HOME_SUN_THUR)
+
+df <- df %>%
+  mutate(EXISTING_ZONING = case_when(
+    EXISTING_ZONING == "CBD - CENTRAL BUSINESS DISTRICT" ~ "CBD",
+    EXISTING_ZONING == "CS - GENERAL COMMERCIAL" ~ "CS",
+    EXISTING_ZONING == "SF-3 - FAMILY RESIDENCE" ~ "SF-3",
+    EXISTING_ZONING == "TOD - TRANSIT ORIENTED DEVELOPMENT ZONING" ~ "TOD",
+    EXISTING_ZONING == "CS-1 - LIQUOR SALES" ~ "CS-1",
+    EXISTING_ZONING == "CS-MU-CO-Np Gen. Commercial-Mixed Use-Con. Overlay-Nbrhd Plan Comb dist" ~ "CS-MU-CO-NP",
+    EXISTING_ZONING == "GR - COMMUNITY COMMERCIAL" ~ "GR",
+    EXISTING_ZONING == "LR-NP Neighborhood Commercial-Neighborhood Plan Combining district" ~ "LR-NP",
+    EXISTING_ZONING == "SF-3-NP - Family Residence-Neighborhood Plan Combining district" ~ "SF-3-NP",
+    EXISTING_ZONING == "DMU - DOWNTOWN MIXED USE" ~ "DMU",
+    TRUE ~ EXISTING_ZONING
+  ))
+unique(df$EXISTING_ZONING)
+
+df$STREET_ADDRESS <- gsub("^[0-9]+(?:-[0-9/]+)?\\s+", "", df$STREET_ADDRESS)
+unique(df$STREET_ADDRESS)
 ```
 
 
