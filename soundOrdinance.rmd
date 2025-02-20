@@ -69,7 +69,7 @@ convert_time <- function(time) {
     return(12)
   }
   
-  time <- gsub("[[:space:].]", "", tolower(time)) # Normalize time by removing spaces and periods
+  time <- gsub("[[:space:].,]", "", tolower(time)) # Normalize time by removing spaces and periods
 
   am_or_pm <- substr(time, nchar(time) - 1, nchar(time)) # Check if the string ends with "am" or "pm"
   time <- gsub(am_or_pm, "", time) #removes the end
@@ -116,7 +116,39 @@ sum(is.na(df$COUNCIL_DISTRICT))  # Count NA values for COUNCIL_DISTRICT
 
 ```{r}
 # ESHI 
+df$START_HOURS_NEAR_HOME_FRI_SAT <- sapply(df$START_HOURS_NEAR_HOME_FRI_SAT, convert_time)
+df <- df[df$START_HOURS_NEAR_HOME_FRI_SAT != "-100", ]
+table(df$START_HOURS_NEAR_HOME_FRI_SAT)
 
+df$END_HOURS_NEAR_HOME_FRI_SAT  <- sapply(df$END_HOURS_NEAR_HOME_FRI_SAT , convert_time)
+df <- df[df$END_HOURS_NEAR_HOME_FRI_SAT != "-100", ]
+table(df$END_HOURS_NEAR_HOME_FRI_SAT)
+
+df$START_HOURS_NEAR_HOME_SUN_THUR <- sapply(df$START_HOURS_NEAR_HOME_SUN_THUR, convert_time)
+table(df$START_HOURS_NEAR_HOME_SUN_THUR)
+
+df$END_HOURS_NEAR_HOME_SUN_THUR <- sapply(df$END_HOURS_NEAR_HOME_SUN_THUR, convert_time)
+df <- df[df$END_HOURS_NEAR_HOME_SUN_THUR != "-100", ]
+table(df$END_HOURS_NEAR_HOME_SUN_THUR)
+
+df <- df %>%
+  mutate(EXISTING_ZONING = case_when(
+    EXISTING_ZONING == "CBD - CENTRAL BUSINESS DISTRICT" ~ "CBD",
+    EXISTING_ZONING == "CS - GENERAL COMMERCIAL" ~ "CS",
+    EXISTING_ZONING == "SF-3 - FAMILY RESIDENCE" ~ "SF-3",
+    EXISTING_ZONING == "TOD - TRANSIT ORIENTED DEVELOPMENT ZONING" ~ "TOD",
+    EXISTING_ZONING == "CS-1 - LIQUOR SALES" ~ "CS-1",
+    EXISTING_ZONING == "CS-MU-CO-Np Gen. Commercial-Mixed Use-Con. Overlay-Nbrhd Plan Comb dist" ~ "CS-MU-CO-NP",
+    EXISTING_ZONING == "GR - COMMUNITY COMMERCIAL" ~ "GR",
+    EXISTING_ZONING == "LR-NP Neighborhood Commercial-Neighborhood Plan Combining district" ~ "LR-NP",
+    EXISTING_ZONING == "SF-3-NP - Family Residence-Neighborhood Plan Combining district" ~ "SF-3-NP",
+    EXISTING_ZONING == "DMU - DOWNTOWN MIXED USE" ~ "DMU",
+    TRUE ~ EXISTING_ZONING
+  ))
+unique(df$EXISTING_ZONING)
+
+df$STREET_ADDRESS <- gsub("^[0-9]+(?:-[0-9/]+)?\\s+", "", df$STREET_ADDRESS)
+unique(df$STREET_ADDRESS)
 ```
 
 
@@ -161,7 +193,7 @@ head(df, 1)
 df_multiple_starts <- df %>% filter(MULTIPLE_START_DATES == TRUE)
 df_multiple_starts 
 
-# *****START_HOURS_NOT_NEAR_HOME --  converted string times into numeric numbers
+# START_HOURS_NOT_NEAR_HOME --  converted string times into numeric numbers + created subset for them
 # replaced that pending review with a NA value
 df$START_HOURS_NOT_NEAR_HOME <- ifelse(df$START_HOURS_NOT_NEAR_HOME == 'Pending Review', NA, df$START_HOURS_NOT_NEAR_HOME)
 df$START_HOURS_NOT_NEAR_HOME <- gsub("an", "am", df$START_HOURS_NOT_NEAR_HOME) # fixed a typo
@@ -170,9 +202,24 @@ df$START_HOURS_NOT_NEAR_HOME <- ifelse(df$START_HOURS_NOT_NEAR_HOME == '12:00', 
 
 df$START_HOURS_NOT_NEAR_HOME <- sapply(df$START_HOURS_NOT_NEAR_HOME, convert_time) # converting column to numbers
 #df$START_HOURS_NOT_NEAR_HOME <- ifelse(test$START_HOURS_NOT_NEAR_HOME == -100, NA, test$START_HOURS_NOT_NEAR_HOME) #making -100 into NA
-table(df$START_HOURS_NOT_NEAR_HOME)
+df_start_hrs_not_home <- df %>% filter(!is.na(START_HOURS_NOT_NEAR_HOME)) # created a different subset
 
-df %>% filter(!is.na(START_HOURS_NOT_NEAR_HOME)) %>% select(START_HOURS_NOT_NEAR_HOME)
+df_start_hrs_not_home %>% summarize(n())
+
+# END_HOURS_NOT_NEAR_HOME - converted strings into numbers, made a subset of this data
+table(df$END_HOURS_NOT_NEAR_HOME)
+# removed pending review
+df$END_HOURS_NOT_NEAR_HOME <- ifelse(df$END_HOURS_NOT_NEAR_HOME == 'Pending Review', NA, df$END_HOURS_NOT_NEAR_HOME)
+df$END_HOURS_NOT_NEAR_HOME <- gsub("A..M.", "am", df$END_HOURS_NOT_NEAR_HOME) # fixed a typo
+df$END_HOURS_NOT_NEAR_HOME <- gsub("12:00 noon", "12:00pm", df$END_HOURS_NOT_NEAR_HOME) # fixed a typo 
+df$END_HOURS_NOT_NEAR_HOME <- gsub("12am & 1am", "12:00am", df$END_HOURS_NOT_NEAR_HOME) #12AM 12AM,
+df$END_HOURS_NOT_NEAR_HOME <- gsub("12AM 12AM,", "12:00am", df$END_HOURS_NOT_NEAR_HOME) #cleaning type
+df$END_HOURS_NOT_NEAR_HOME <- ifelse(df$END_HOURS_NOT_NEAR_HOME == '2:00', "2:00PM", df$END_HOURS_NOT_NEAR_HOME) #fixing type
+
+df$END_HOURS_NOT_NEAR_HOME <- sapply(df$END_HOURS_NOT_NEAR_HOME, convert_time) # converting column to numbers
+
+df_end_hrs_not_home <- df %>% filter(!is.na(df$END_HOURS_NOT_NEAR_HOME)) 
+df_end_hrs_not_home %>% summarize(n())
 
 head(df)
 ```
@@ -181,4 +228,70 @@ head(df)
 ```{r}
 # MAADHAV 
 
-```
+head(df)
+
+# ---AMPLIFIED_SOUND_DISTRICT------
+#This columns has 3,262/6,455 missing values, so we can't drop all NAs
+#Replacing with "Unknown" for now
+num_nas <- sum(is.na(df$AMPLIFIED_SOUND_DISTRICT))
+print(paste("Number of NAs:", num_nas, nrow(df)))
+df$AMPLIFIED_SOUND_DISTRICT[is.na(df$AMPLIFIED_SOUND_DISTRICT)] <- "Unknown"
+
+#Replacing "Withing 600ft of Residential" with "Residential"
+
+df <- df %>%
+  mutate(AMPLIFIED_SOUND_DISTRICT = ifelse(AMPLIFIED_SOUND_DISTRICT == "Within 600 ft of Residential", "Residential", AMPLIFIED_SOUND_DISTRICT))
+#Replacing "Warehouse District" with "Warehouse"
+df <- df %>%
+  mutate(AMPLIFIED_SOUND_DISTRICT = ifelse(AMPLIFIED_SOUND_DISTRICT == "Warehouse District", "Warehouse", AMPLIFIED_SOUND_DISTRICT))
+
+#Replacing "6th Street District" with "6th"
+df <- df %>%
+  mutate(AMPLIFIED_SOUND_DISTRICT = ifelse(AMPLIFIED_SOUND_DISTRICT == "6th Street District", "6th", AMPLIFIED_SOUND_DISTRICT))
+unique(df$AMPLIFIED_SOUND_DISTRICT)
+
+
+#----REST_51_PERCENT_FOOD_SALES-----
+#Had ~5000 missing values, can't do too much about it
+unique(df$REST_51_PERCENT_FOOD_SALES)
+num_nas <- sum(is.na(df$REST_51_PERCENT_FOOD_SALES))
+print(paste("Number of NAs:", num_nas, nrow(df)))
+
+#---SQUARE_FOOTAGE------
+#Had ~5000 missing values, exact same number as REST_51_PERCENT_FOOD_SALES
+unique(df$SQUARE_FOOTAGE)
+num_nas <- sum(is.na(df$SQUARE_FOOTAGE))
+print(paste("Number of NAs:", num_nas, nrow(df)))
+
+#----CAPACITY-----
+#Had ~5000 missing values, exact same number as REST_51_PERCENT_FOOD_SALES
+num_nas <- sum(is.na(df$CAPACITY))
+print(paste("Number of NAs:", num_nas, nrow(df)))
+
+#----DECIBEL_LEVEL-----
+#~3000 missing values
+num_nas <- sum(is.na(df$DECIBEL_LEVEL))
+print(paste("Number of NAs:", num_nas, nrow(df)))
+unique(df$DECIBEL_LEVEL)
+
+#-----SUB_TYPE------
+#Data is clean, one category (Moving Vehicle) has only one record so I deleted it
+num_nas <- sum(is.na(df$SUB_TYPE))
+print(paste("Number of NAs:", num_nas, nrow(df)))
+counts <- df %>%
+  count(SUB_TYPE) %>%
+  arrange(desc(n))
+
+df <- df %>%
+  filter(SUB_TYPE != "Moving Vehicle")
+unique(df$SUB_TYPE)
+
+#---EVENT_MONTH-----
+#Removed 1600 missing values
+num_nas <- sum(is.na(df$EVENT_MONTH))
+print(paste("Number of NAs:", num_nas, nrow(df)))
+df <- df %>% filter(!is.na(EVENT_MONTH))
+unique(df$EVENT_MONTH)
+
+#----CALENDAR_YEAR_FOLDER_CREATED------
+#This column is removed
