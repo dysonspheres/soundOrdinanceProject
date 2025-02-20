@@ -12,7 +12,7 @@ knit: reprex::reprex_render
 ---
 ## Data Cleaning
 We decided to remove these columns: CASE_TYPE, FOLDER_TYPE, WORK, PERMIT_NUMBER, REFERENCEFILE, FOLDERRSN, LINK, APPLICANT_FIRST_NAME, APPLICANT_LAST_NAME, END_HOURS_MOV_VEH_MON_SAT, END_HOURS_MOV_VEH_SUN, PROPERTYRSN, START_HOURS_MOV_VEH_MON_SAT, START_HOURS_MOV_VEH_SUN, PROPX, PROPY, LOCATION, UPDATE_DATE, FOLDER_DESCRIPTION
-```{r, echo=FALSE, results="hide", message="hide"}
+```{r}
 # install.packages("dplyr")  # this was for Nneoma, since it wasn't working for you
 library(dplyr)
 
@@ -31,8 +31,7 @@ df <- df %>% filter(!is.na(CALENDAR_YEAR_FOLDER_CREATED))
 df <- df %>% filter(!is.na(EVENT_YEAR))
 df <- df %>% filter(!is.na(EXISTING_ZONING))
 df <- df %>% filter(!is.na(ISSUED_BY))
-# df <- df %>% filter(!is.na(START_HOURS_CONC_POUR_MON_SAT))
-# df <- df %>% filter(!is.na(END_HOURS_CONC_POUR_MON_SAT))
+df <- df %>% filter(!is.na(START_HOURS_CONC_POUR_MON_SAT))
 
 # unique_counts <- sapply(df, function(col), length(unique(col)))
 # print(unique_counts)
@@ -103,16 +102,56 @@ convert_time <- function(time) {
 # Greg
 ```{r, echo=FALSE}
 # GREG 
+library(stringr)
 
-df$START_HOURS_CONC_POUR_MON_SAT <- sapply(df$START_HOURS_CONC_POUR_MON_SAT, convert_time)
-df$END_HOURS_CONC_POUR_MON_SAT <- sapply(df$END_HOURS_CONC_POUR_MON_SAT, convert_time)
+# Function to convert time strings to military time
+normalize_time <- function(time_str) {
+  time_str <- str_trim(tolower(time_str)) # Convert to lowercase for consistency
+  
+  # Handle special cases
+  if (time_str %in% c("midnight", "12am", "12:00am")) {
+    return("00:00")
+  }
+  if (time_str %in% c("12pm", "12:00pm")) {
+    return("12:00")
+  }
+  if (time_str %in% c("1:00m")) {
+    return("01:00")
+  }
+  
+  # Extract hours, minutes, and AM/PM if present
+  matches <- str_match(time_str, "^(\\d{1,2})(?::(\\d{2}))?\\s*(a\\.m\\.|p\\.m\\.|am|pm)?$")
+  if (!is.na(matches[1])) {
+    hour <- as.numeric(matches[2])
+    minute <- ifelse(is.na(matches[3]), "00", matches[3])
+    period <- matches[4]
+    
+    # Convert to 24-hour format
+    if (!is.na(period)) {
+      if (period %in% c("pm", "p.m.") && hour != 12) {
+        hour <- hour + 12
+      }
+      if (period %in% c("am", "a.m.") && hour == 12) {
+        hour <- 0
+      }
+    }
+    return(sprintf("%02d:%02d", hour, as.numeric(minute)))
+  }
+  # Return NA for unrecognized formats
+  return("0:00")
+}
 
-sum(is.na(df$LONGITUDE))  # Count NA values for LONGITUDE
-sum(is.na(df$ZIPCODE))    # Count NA values for ZIPCODE
-sum(is.na(df$LATITUDE))   # Count NA values for LATITUDE
-sum(is.na(df$COUNCIL_DISTRICT))  # Count NA values for COUNCIL_DISTRICT
+# Apply normalization to the column
+nrow(df$START_HOURS_CONC_POUR_MON_SAT)
+df$START_HOURS_CONC_POUR_MON_SAT <- df$START_HOURS_CONC_POUR_MON_SAT[!is.na(df$START_HOURS_CONC_POUR_MON_SAT) & df$START_HOURS_CONC_POUR_MON_SAT != "NA"]
+nrow(df$START_HOURS_CONC_POUR_MON_SAT)
+
+
+df$START_HOURS_CONC_POUR_MON_SAT <- sapply(df$START_HOURS_CONC_POUR_MON_SAT, normalize_time)
+print(unique(df$START_HOURS_CONC_POUR_MON_SAT))
 
 ```
+
 
 ```{r}
 # ESHI 
