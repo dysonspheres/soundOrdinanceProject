@@ -172,4 +172,70 @@ head(df)
 ```{r}
 # MAADHAV 
 
-```
+head(df)
+
+# ---AMPLIFIED_SOUND_DISTRICT------
+#This columns has 3,262/6,455 missing values, so we can't drop all NAs
+#Replacing with "Unknown" for now
+num_nas <- sum(is.na(df$AMPLIFIED_SOUND_DISTRICT))
+print(paste("Number of NAs:", num_nas, nrow(df)))
+df$AMPLIFIED_SOUND_DISTRICT[is.na(df$AMPLIFIED_SOUND_DISTRICT)] <- "Unknown"
+
+#Replacing "Withing 600ft of Residential" with "Residential"
+
+df <- df %>%
+  mutate(AMPLIFIED_SOUND_DISTRICT = ifelse(AMPLIFIED_SOUND_DISTRICT == "Within 600 ft of Residential", "Residential", AMPLIFIED_SOUND_DISTRICT))
+#Replacing "Warehouse District" with "Warehouse"
+df <- df %>%
+  mutate(AMPLIFIED_SOUND_DISTRICT = ifelse(AMPLIFIED_SOUND_DISTRICT == "Warehouse District", "Warehouse", AMPLIFIED_SOUND_DISTRICT))
+
+#Replacing "6th Street District" with "6th"
+df <- df %>%
+  mutate(AMPLIFIED_SOUND_DISTRICT = ifelse(AMPLIFIED_SOUND_DISTRICT == "6th Street District", "6th", AMPLIFIED_SOUND_DISTRICT))
+unique(df$AMPLIFIED_SOUND_DISTRICT)
+
+
+#----REST_51_PERCENT_FOOD_SALES-----
+#Had ~5000 missing values, can't do too much about it
+unique(df$REST_51_PERCENT_FOOD_SALES)
+num_nas <- sum(is.na(df$REST_51_PERCENT_FOOD_SALES))
+print(paste("Number of NAs:", num_nas, nrow(df)))
+
+#---SQUARE_FOOTAGE------
+#Had ~5000 missing values, exact same number as REST_51_PERCENT_FOOD_SALES
+unique(df$SQUARE_FOOTAGE)
+num_nas <- sum(is.na(df$SQUARE_FOOTAGE))
+print(paste("Number of NAs:", num_nas, nrow(df)))
+
+#----CAPACITY-----
+#Had ~5000 missing values, exact same number as REST_51_PERCENT_FOOD_SALES
+num_nas <- sum(is.na(df$CAPACITY))
+print(paste("Number of NAs:", num_nas, nrow(df)))
+
+#----DECIBEL_LEVEL-----
+#~3000 missing values
+num_nas <- sum(is.na(df$DECIBEL_LEVEL))
+print(paste("Number of NAs:", num_nas, nrow(df)))
+unique(df$DECIBEL_LEVEL)
+
+#-----SUB_TYPE------
+#Data is clean, one category (Moving Vehicle) has only one record so I deleted it
+num_nas <- sum(is.na(df$SUB_TYPE))
+print(paste("Number of NAs:", num_nas, nrow(df)))
+counts <- df %>%
+  count(SUB_TYPE) %>%
+  arrange(desc(n))
+
+df <- df %>%
+  filter(SUB_TYPE != "Moving Vehicle")
+unique(df$SUB_TYPE)
+
+#---EVENT_MONTH-----
+#Removed 1600 missing values
+num_nas <- sum(is.na(df$EVENT_MONTH))
+print(paste("Number of NAs:", num_nas, nrow(df)))
+df <- df %>% filter(!is.na(EVENT_MONTH))
+unique(df$EVENT_MONTH)
+
+#----CALENDAR_YEAR_FOLDER_CREATED------
+#This column is removed
