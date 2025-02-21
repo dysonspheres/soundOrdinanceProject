@@ -12,7 +12,7 @@ knit: reprex::reprex_render
 ---
 ## Data Cleaning
 We decided to remove these columns: CASE_TYPE, FOLDER_TYPE, WORK, PERMIT_NUMBER, REFERENCEFILE, FOLDERRSN, LINK, APPLICANT_FIRST_NAME, APPLICANT_LAST_NAME, END_HOURS_MOV_VEH_MON_SAT, END_HOURS_MOV_VEH_SUN, PROPERTYRSN, START_HOURS_MOV_VEH_MON_SAT, START_HOURS_MOV_VEH_SUN, PROPX, PROPY, LOCATION, UPDATE_DATE, FOLDER_DESCRIPTION
-```{r}
+```{r, echo=FALSE, results="hide", message="hide"}
 # install.packages("dplyr")  # this was for Nneoma, since it wasn't working for you
 library(dplyr)
 
@@ -31,6 +31,8 @@ df <- df %>% filter(!is.na(CALENDAR_YEAR_FOLDER_CREATED))
 df <- df %>% filter(!is.na(EVENT_YEAR))
 df <- df %>% filter(!is.na(EXISTING_ZONING))
 df <- df %>% filter(!is.na(ISSUED_BY))
+# df <- df %>% filter(!is.na(START_HOURS_CONC_POUR_MON_SAT))
+# df <- df %>% filter(!is.na(END_HOURS_CONC_POUR_MON_SAT))
 
 # unique_counts <- sapply(df, function(col), length(unique(col)))
 # print(unique_counts)
@@ -98,12 +100,19 @@ convert_time <- function(time) {
 
 ```
 
-
-```{r}
+# Greg
+```{r, echo=FALSE}
 # GREG 
 
-```
+df$START_HOURS_CONC_POUR_MON_SAT <- sapply(df$START_HOURS_CONC_POUR_MON_SAT, convert_time)
+df$END_HOURS_CONC_POUR_MON_SAT <- sapply(df$END_HOURS_CONC_POUR_MON_SAT, convert_time)
 
+sum(is.na(df$LONGITUDE))  # Count NA values for LONGITUDE
+sum(is.na(df$ZIPCODE))    # Count NA values for ZIPCODE
+sum(is.na(df$LATITUDE))   # Count NA values for LATITUDE
+sum(is.na(df$COUNCIL_DISTRICT))  # Count NA values for COUNCIL_DISTRICT
+
+```
 
 ```{r}
 # ESHI 
@@ -197,19 +206,20 @@ df_start_hrs_not_home <- df %>% filter(!is.na(START_HOURS_NOT_NEAR_HOME)) # crea
 
 df_start_hrs_not_home %>% summarize(n())
 
-# *********END_HOURS_NOT_NEAR_HOME
+# END_HOURS_NOT_NEAR_HOME - converted strings into numbers, made a subset of this data
 table(df$END_HOURS_NOT_NEAR_HOME)
 # removed pending review
 df$END_HOURS_NOT_NEAR_HOME <- ifelse(df$END_HOURS_NOT_NEAR_HOME == 'Pending Review', NA, df$END_HOURS_NOT_NEAR_HOME)
 df$END_HOURS_NOT_NEAR_HOME <- gsub("A..M.", "am", df$END_HOURS_NOT_NEAR_HOME) # fixed a typo
 df$END_HOURS_NOT_NEAR_HOME <- gsub("12:00 noon", "12:00pm", df$END_HOURS_NOT_NEAR_HOME) # fixed a typo 
 df$END_HOURS_NOT_NEAR_HOME <- gsub("12am & 1am", "12:00am", df$END_HOURS_NOT_NEAR_HOME) #12AM 12AM,
-df$END_HOURS_NOT_NEAR_HOME <- gsub("12AM 12AM,", "12:00am", df$END_HOURS_NOT_NEAR_HOME) #12AM 12AM,
-
-df %>
+df$END_HOURS_NOT_NEAR_HOME <- gsub("12AM 12AM,", "12:00am", df$END_HOURS_NOT_NEAR_HOME) #cleaning type
+df$END_HOURS_NOT_NEAR_HOME <- ifelse(df$END_HOURS_NOT_NEAR_HOME == '2:00', "2:00PM", df$END_HOURS_NOT_NEAR_HOME) #fixing type
 
 df$END_HOURS_NOT_NEAR_HOME <- sapply(df$END_HOURS_NOT_NEAR_HOME, convert_time) # converting column to numbers
 
+df_end_hrs_not_home <- df %>% filter(!is.na(df$END_HOURS_NOT_NEAR_HOME)) 
+df_end_hrs_not_home %>% summarize(n())
 
 head(df)
 ```
