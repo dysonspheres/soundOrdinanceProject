@@ -280,8 +280,8 @@ unique(df$SUB_TYPE)
 #Removed 1600 missing values
 num_nas <- sum(is.na(df$EVENT_MONTH))
 print(paste("Number of NAs:", num_nas, nrow(df)))
-df <- df %>% filter(!is.na(EVENT_MONTH))
-unique(df$EVENT_MONTH)
+nas <- df %>% filter(is.na(EVENT_MONTH))
 
 #----CALENDAR_YEAR_FOLDER_CREATED------
-#This column is removed
+#This column is 
+```
