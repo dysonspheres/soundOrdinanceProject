@@ -302,3 +302,5 @@ nas <- df %>% filter(is.na(EVENT_MONTH))
 #This column is removed
 df %>% summarize(n())
 ```
+
+# Getting into Data Exploration
