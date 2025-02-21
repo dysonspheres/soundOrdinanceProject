@@ -50,6 +50,7 @@ unique_values
 # table(df$OMV_TUE_END_TIME)
 # table(df$ISSUED_BY)
 
+df %>% summarize(n())
 
 ```
 
@@ -112,6 +113,7 @@ sum(is.na(df$ZIPCODE))    # Count NA values for ZIPCODE
 sum(is.na(df$LATITUDE))   # Count NA values for LATITUDE
 sum(is.na(df$COUNCIL_DISTRICT))  # Count NA values for COUNCIL_DISTRICT
 
+df %>% summarize(n())
 ```
 
 ```{r}
@@ -149,11 +151,38 @@ unique(df$EXISTING_ZONING)
 
 df$STREET_ADDRESS <- gsub("^[0-9]+(?:-[0-9/]+)?\\s+", "", df$STREET_ADDRESS)
 unique(df$STREET_ADDRESS)
+
+df %>% summarize(n())
 ```
 
 
 ```{r}
 # DANIEL 
+
+# use the orginal data set and do convert_time for OMVs please
+# OMV_FRI_END_TIME - 1,457 present values
+#df %>% filter(!is.na(OMV_FRI_END_TIME)) %>% summarize(n())
+table(df$OMV_FRI_END_TIME)
+df$OMV_FRI_END_TIME <- sapply(df$OMV_FRI_END_TIME, convert_time) # converting column to numbers
+# -100 means the format is junk - either remove or fix it before you convert_time
+
+
+
+# OMV_FRI_START_TIME	
+# OMV_MON_END_TIME	
+# OMV_MON_START_TIME	
+# OMV_SAT_END_TIME	
+# OMV_SAT_START_TIME	
+# OMV_SUN_END_TIME	
+# OMV_SUN_START_TIME	
+# OMV_THU_END_TIME	
+# OMV_THU_START_TIME	
+# OMV_TUE_END_TIME	
+# OMV_TUE_START_TIME	
+# OMV_WED_END_TIME	
+# OMV_WED_START_TIME	
+
+
 
 ```
 
@@ -162,6 +191,9 @@ Nneoma is cleaning the values START_HOURS_NOT_NEAR_HOME, END_HOURS_NOT_NEAR_HOME
 IN_DATE (YYYY-MM-DD), ISSUE_DATE, ISSUED_BY (YYYY-MM-DD), START_DATE, and has_multiple_start_dates
 ```{r}
 # NNEOMA 
+
+table(df$STATUS)
+
 #nrow(df)
 #************** START_DATE has 1,458 missing values -- if event month is blank, then start_date will be blank
 #df$START_DATE
@@ -191,7 +223,7 @@ head(df, 1)
 
 # MULTIPLE_START_DATES -- i am making a subset of rows that have multiple start dates
 df_multiple_starts <- df %>% filter(MULTIPLE_START_DATES == TRUE)
-df_multiple_starts 
+df_multiplde_starts 
 
 # START_HOURS_NOT_NEAR_HOME --  converted string times into numeric numbers + created subset for them
 # replaced that pending review with a NA value
@@ -202,9 +234,6 @@ df$START_HOURS_NOT_NEAR_HOME <- ifelse(df$START_HOURS_NOT_NEAR_HOME == '12:00', 
 
 df$START_HOURS_NOT_NEAR_HOME <- sapply(df$START_HOURS_NOT_NEAR_HOME, convert_time) # converting column to numbers
 #df$START_HOURS_NOT_NEAR_HOME <- ifelse(test$START_HOURS_NOT_NEAR_HOME == -100, NA, test$START_HOURS_NOT_NEAR_HOME) #making -100 into NA
-df_start_hrs_not_home <- df %>% filter(!is.na(START_HOURS_NOT_NEAR_HOME)) # created a different subset
-
-df_start_hrs_not_home %>% summarize(n())
 
 # END_HOURS_NOT_NEAR_HOME - converted strings into numbers, made a subset of this data
 table(df$END_HOURS_NOT_NEAR_HOME)
@@ -218,9 +247,7 @@ df$END_HOURS_NOT_NEAR_HOME <- ifelse(df$END_HOURS_NOT_NEAR_HOME == '2:00', "2:00
 
 df$END_HOURS_NOT_NEAR_HOME <- sapply(df$END_HOURS_NOT_NEAR_HOME, convert_time) # converting column to numbers
 
-df_end_hrs_not_home <- df %>% filter(!is.na(df$END_HOURS_NOT_NEAR_HOME)) 
-df_end_hrs_not_home %>% summarize(n())
-
+df %>% summarize(n())
 head(df)
 ```
 
@@ -295,3 +322,5 @@ unique(df$EVENT_MONTH)
 
 #----CALENDAR_YEAR_FOLDER_CREATED------
 #This column is removed
+df %>% summarize(n())
+```
