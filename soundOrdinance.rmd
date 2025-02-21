@@ -37,7 +37,7 @@ df <- df %>% filter(!is.na(ISSUED_BY))
 # unique_counts <- sapply(df, function(col), length(unique(col)))
 # print(unique_counts)
 
-colSums(is.na(df))
+
 df$START_DATE_2 <- !(df$START_DATE_2 == "" | is.na(df$START_DATE_2)) # flipped it to make majority of set false instead of true
 
 
@@ -52,6 +52,7 @@ unique_values
 
 df %>% summarize(n())
 
+sum(colSums(is.na(df)))
 ```
 
 The convert_time method will be used to change hours into numbers
@@ -96,7 +97,7 @@ convert_time <- function(time) {
     return(-100)  # If time format is unrecognized, return an error
   }
   
-} df %>% glimpse()
+}
 
 
 ```
@@ -119,18 +120,26 @@ df %>% summarize(n())
 ```{r}
 # ESHI 
 df$START_HOURS_NEAR_HOME_FRI_SAT <- sapply(df$START_HOURS_NEAR_HOME_FRI_SAT, convert_time)
-df <- df[df$START_HOURS_NEAR_HOME_FRI_SAT != "-100", ]
-table(df$START_HOURS_NEAR_HOME_FRI_SAT)
+# df <- df[df$START_HOURS_NEAR_HOME_FRI_SAT != "-100", ]
+df %>% summarize(n())
+df$START_HOURS_NEAR_HOME_FRI_SAT <- ifelse(df$START_HOURS_NEAR_HOME_FRI_SAT == -100, NA, df$START_HOURS_NEAR_HOME_FRI_SAT) #making -100 into NA
+df %>% summarize(n())
 
+table(df$START_HOURS_NEAR_HOME_FRI_SAT)
+df %>% summarize(n())
 df$END_HOURS_NEAR_HOME_FRI_SAT  <- sapply(df$END_HOURS_NEAR_HOME_FRI_SAT , convert_time)
-df <- df[df$END_HOURS_NEAR_HOME_FRI_SAT != "-100", ]
+# df <- df[df$END_HOURS_NEAR_HOME_FRI_SAT != "-100", ]
+df %>% summarize(n())
+df$END_HOURS_NEAR_HOME_FRI_SAT <- ifelse(df$END_HOURS_NEAR_HOME_FRI_SAT == -100, NA, df$END_HOURS_NEAR_HOME_FRI_SAT) #making -100 into NA
 table(df$END_HOURS_NEAR_HOME_FRI_SAT)
 
 df$START_HOURS_NEAR_HOME_SUN_THUR <- sapply(df$START_HOURS_NEAR_HOME_SUN_THUR, convert_time)
 table(df$START_HOURS_NEAR_HOME_SUN_THUR)
 
 df$END_HOURS_NEAR_HOME_SUN_THUR <- sapply(df$END_HOURS_NEAR_HOME_SUN_THUR, convert_time)
-df <- df[df$END_HOURS_NEAR_HOME_SUN_THUR != "-100", ]
+# df <- df[df$END_HOURS_NEAR_HOME_SUN_THUR != "-100", ]
+df %>% summarize(n())
+df$END_HOURS_NEAR_HOME_SUN_THUR <- ifelse(df$END_HOURS_NEAR_HOME_SUN_THUR == -100, NA, df$END_HOURS_NEAR_HOME_SUN_THUR) #making -100 into NA
 table(df$END_HOURS_NEAR_HOME_SUN_THUR)
 
 df <- df %>%
@@ -153,6 +162,7 @@ df$STREET_ADDRESS <- gsub("^[0-9]+(?:-[0-9/]+)?\\s+", "", df$STREET_ADDRESS)
 unique(df$STREET_ADDRESS)
 
 df %>% summarize(n())
+sum(colSums(is.na(df)))
 ```
 
 
@@ -182,7 +192,7 @@ df$OMV_FRI_END_TIME <- sapply(df$OMV_FRI_END_TIME, convert_time) # converting co
 # OMV_WED_END_TIME	
 # OMV_WED_START_TIME	
 
-df %>% summarize(n())
+
 
 ```
 
@@ -194,15 +204,49 @@ IN_DATE (YYYY-MM-DD), ISSUE_DATE, ISSUED_BY (YYYY-MM-DD), START_DATE, and has_mu
 
 table(df$STATUS)
 
-df$START_HOURS_NOT_NEAR_HOME <- ifelse(df$START_HOURS_NOT_NEAR_HOME == 'Pending Review', NA, df$START_HOURS_NOT_NEAR_HOME) # replaced that pending review with a NA value
+#nrow(df)
+#************** START_DATE has 1,458 missing values -- if event month is blank, then start_date will be blank
+#df$START_DATE
+unique(df$START_DATE)
+df %>% filter(is.na(df$START_DATE)) %>% select(START_DATE, STATUS) #checking cols of null start_date
+
+#ISSUE DATE -- everything is clean and no missing values
+unique(df$ISSUE_DATE)
+df %>% select(ISSUE_DATE)  #%>%  filter(is.na(ISSUE_DATE))#checking cols of null start_date
+
+#IN DATE -- everything is clean and no missing values
+unique(df$IN_DATE)
+df %>% select(IN_DATE)#filter(is.na(IN_DATE))  %>%   #checking cols of null start_date
+head(df$IN_DATE, 1000)
+
+# *********EXPIRATION_DATE -- if start_date is NA, then ex_date is NA
+
+unique(df$EXPIRATION_DATE)
+df %>% filter(is.na(EXPIRATION_DATE) & STATUS=='Expired') %>% select(EXPIRATION_DATE, START_DATE, STATUS) #  %>% summarize(n())  #checking cols of null start_date
+head(df$EXPIRATION_DATE, 1000)
+
+# ISSUEd_BY -- everything is clean and no missing values
+table(df$ISSUED_BY)
+unique(df$ISSUED_BY)
+df %>% filter(is.na(ISSUED_BY))# %>% select(EXPIRATION_DATE, START_DATE, STATUS) #  %>% summarize(n())  #checking cols of null start_date
+head(df, 1)
+
+# MULTIPLE_START_DATES -- i am making a subset of rows that have multiple start dates
+df_multiple_starts <- df %>% filter(MULTIPLE_START_DATES == TRUE)
+df_multiplde_starts 
+
+# START_HOURS_NOT_NEAR_HOME --  converted string times into numeric numbers + created subset for them
+# replaced that pending review with a NA value
+df$START_HOURS_NOT_NEAR_HOME <- ifelse(df$START_HOURS_NOT_NEAR_HOME == 'Pending Review', NA, df$START_HOURS_NOT_NEAR_HOME)
 df$START_HOURS_NOT_NEAR_HOME <- gsub("an", "am", df$START_HOURS_NOT_NEAR_HOME) # fixed a typo
-df$START_HOURS_NOT_NEAR_HOME <- ifelse(df$START_HOURS_NOT_NEAR_HOME == '12:00', "12:00 PM", df$START_HOURS_NOT_NEAR_HOME)# changed 12:00 to 12:00PM
+# changed 12:00 to 12:00PM
+df$START_HOURS_NOT_NEAR_HOME <- ifelse(df$START_HOURS_NOT_NEAR_HOME == '12:00', "12:00 PM", df$START_HOURS_NOT_NEAR_HOME)
 
 df$START_HOURS_NOT_NEAR_HOME <- sapply(df$START_HOURS_NOT_NEAR_HOME, convert_time) # converting column to numbers
 #df$START_HOURS_NOT_NEAR_HOME <- ifelse(test$START_HOURS_NOT_NEAR_HOME == -100, NA, test$START_HOURS_NOT_NEAR_HOME) #making -100 into NA
 
 # END_HOURS_NOT_NEAR_HOME - converted strings into numbers, made a subset of this data
-#table(df$END_HOURS_NOT_NEAR_HOME)
+table(df$END_HOURS_NOT_NEAR_HOME)
 # removed pending review
 df$END_HOURS_NOT_NEAR_HOME <- ifelse(df$END_HOURS_NOT_NEAR_HOME == 'Pending Review', NA, df$END_HOURS_NOT_NEAR_HOME)
 df$END_HOURS_NOT_NEAR_HOME <- gsub("A..M.", "am", df$END_HOURS_NOT_NEAR_HOME) # fixed a typo
@@ -214,6 +258,7 @@ df$END_HOURS_NOT_NEAR_HOME <- ifelse(df$END_HOURS_NOT_NEAR_HOME == '2:00', "2:00
 df$END_HOURS_NOT_NEAR_HOME <- sapply(df$END_HOURS_NOT_NEAR_HOME, convert_time) # converting column to numbers
 
 df %>% summarize(n())
+head(df)
 ```
 
 
@@ -246,14 +291,9 @@ unique(df$AMPLIFIED_SOUND_DISTRICT)
 
 #----REST_51_PERCENT_FOOD_SALES-----
 #Had ~5000 missing values, can't do too much about it
-table(df$REST_51_PERCENT_FOOD_SALES)
-
-
-
 unique(df$REST_51_PERCENT_FOOD_SALES)
 num_nas <- sum(is.na(df$REST_51_PERCENT_FOOD_SALES))
-print(paste("Number of NAs:", num_nas, nrow(df))) # missing vals??
-
+print(paste("Number of NAs:", num_nas, nrow(df)))
 
 #---SQUARE_FOOTAGE------
 #Had ~5000 missing values, exact same number as REST_51_PERCENT_FOOD_SALES
@@ -291,7 +331,6 @@ print(paste("Number of NAs:", num_nas, nrow(df)))
 nas <- df %>% filter(is.na(EVENT_MONTH))
 
 #----CALENDAR_YEAR_FOLDER_CREATED------
-
 #This column is removed
 df %>% summarize(n())
 ```
