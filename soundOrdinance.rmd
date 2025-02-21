@@ -253,6 +253,7 @@ head(df)
 
 
 ```{r}
+library(dplyr)
 # MAADHAV 
 
 head(df)
@@ -317,10 +318,13 @@ unique(df$SUB_TYPE)
 #Removed 1600 missing values
 num_nas <- sum(is.na(df$EVENT_MONTH))
 print(paste("Number of NAs:", num_nas, nrow(df)))
-df <- df %>% filter(!is.na(EVENT_MONTH))
-unique(df$EVENT_MONTH)
+nas <- df %>% filter(is.na(EVENT_MONTH))
 
 #----CALENDAR_YEAR_FOLDER_CREATED------
+<<<<<<< HEAD
 #This column is removed
 df %>% summarize(n())
+=======
+#This column is 
+>>>>>>> 2ce8409aa0ab6f720b115596277bda2770215992
 ```
