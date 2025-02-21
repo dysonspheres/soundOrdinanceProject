@@ -27,7 +27,6 @@ df <- df %>% select(-all_of(columns_to_remove))
 
 df <- df %>% rename(EVENT_YEAR = CALENDAR_YEAR_FOLDER_CREATED)
 df <- df %>% filter(!is.na(COUNCIL_DISTRICT))
-df <- df %>% filter(!is.na(CALENDAR_YEAR_FOLDER_CREATED))
 df <- df %>% filter(!is.na(EVENT_YEAR))
 df <- df %>% filter(!is.na(EXISTING_ZONING))
 df <- df %>% filter(!is.na(ISSUED_BY))
