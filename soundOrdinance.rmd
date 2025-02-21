@@ -96,7 +96,7 @@ convert_time <- function(time) {
     return(-100)  # If time format is unrecognized, return an error
   }
   
-}
+} df %>% glimpse()
 
 
 ```
@@ -194,42 +194,9 @@ IN_DATE (YYYY-MM-DD), ISSUE_DATE, ISSUED_BY (YYYY-MM-DD), START_DATE, and has_mu
 
 table(df$STATUS)
 
-#nrow(df)
-#************** START_DATE has 1,458 missing values -- if event month is blank, then start_date will be blank
-#df$START_DATE
-#unique(df$START_DATE)
-#df %>% filter(is.na(df$START_DATE)) %>% select(START_DATE, STATUS) #checking cols of null start_date
-
-#ISSUE DATE -- everything is clean and no missing values
-#unique(df$ISSUE_DATE)
-#df %>% select(ISSUE_DATE)  #%>%  filter(is.na(ISSUE_DATE))#checking cols of null start_date
-
-#IN DATE -- everything is clean and no missing values
-#unique(df$IN_DATE)
-#f %>% select(IN_DATE)#filter(is.na(IN_DATE))  %>%   #checking cols of null start_date
-#head(df$IN_DATE, 1000)
-
-# *********EXPIRATION_DATE -- if start_date is NA, then ex_date is NA
-
-#unique(df$EXPIRATION_DATE)
-#df %>% filter(is.na(EXPIRATION_DATE) & STATUS=='Expired') %>% select(EXPIRATION_DATE, START_DATE, STATUS) #  %>% summarize(n())  #checking cols of null start_date
-#head(df$EXPIRATION_DATE, 1000)
-
-# ISSUEd_BY -- everything is clean and no missing values
-#table(df$ISSUED_BY)
-#unique(df$ISSUED_BY)
-#df %>% filter(is.na(ISSUED_BY))# %>% select(EXPIRATION_DATE, START_DATE, STATUS) #  %>% summarize(n())  #checking cols of null start_date
-#head(df, 1)
-
-# MULTIPLE_START_DATES -- i am making a subset of rows that have multiple start dates
-#df_multiple_starts <- df %>% filter(MULTIPLE_START_DATES == TRUE)
-
-# START_HOURS_NOT_NEAR_HOME --  converted string times into numeric numbers + created subset for them
-# replaced that pending review with a NA value
-df$START_HOURS_NOT_NEAR_HOME <- ifelse(df$START_HOURS_NOT_NEAR_HOME == 'Pending Review', NA, df$START_HOURS_NOT_NEAR_HOME)
+df$START_HOURS_NOT_NEAR_HOME <- ifelse(df$START_HOURS_NOT_NEAR_HOME == 'Pending Review', NA, df$START_HOURS_NOT_NEAR_HOME) # replaced that pending review with a NA value
 df$START_HOURS_NOT_NEAR_HOME <- gsub("an", "am", df$START_HOURS_NOT_NEAR_HOME) # fixed a typo
-# changed 12:00 to 12:00PM
-df$START_HOURS_NOT_NEAR_HOME <- ifelse(df$START_HOURS_NOT_NEAR_HOME == '12:00', "12:00 PM", df$START_HOURS_NOT_NEAR_HOME)
+df$START_HOURS_NOT_NEAR_HOME <- ifelse(df$START_HOURS_NOT_NEAR_HOME == '12:00', "12:00 PM", df$START_HOURS_NOT_NEAR_HOME)# changed 12:00 to 12:00PM
 
 df$START_HOURS_NOT_NEAR_HOME <- sapply(df$START_HOURS_NOT_NEAR_HOME, convert_time) # converting column to numbers
 #df$START_HOURS_NOT_NEAR_HOME <- ifelse(test$START_HOURS_NOT_NEAR_HOME == -100, NA, test$START_HOURS_NOT_NEAR_HOME) #making -100 into NA
