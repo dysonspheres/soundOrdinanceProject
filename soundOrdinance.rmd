@@ -226,6 +226,7 @@ head(df)
 
 
 ```{r}
+library(dplyr)
 # MAADHAV 
 
 head(df)
