@@ -389,8 +389,8 @@ df$END_HOURS_NOT_NEAR_HOME <- ifelse(df$END_HOURS_NOT_NEAR_HOME == "2:00", "2:00
 df$END_HOURS_NOT_NEAR_HOME <- sapply(df$END_HOURS_NOT_NEAR_HOME, convert_time) # converting column to numbers
 
 df %>% summarize(n())
+head(df)
 ```
-
 
 ```{r}
 library(dplyr)
@@ -465,7 +465,7 @@ nas <- df %>% filter(is.na(EVENT_MONTH))
 df %>% summarize(n())
 ```
 
-## Exploring the Data
+### END OF DATA CLEANING. PUT ALL CODE BELOW
 # Nneoma - Average start and End Times for Hours Not Near Home
 ```{r}
 # install.packages("ggplot2", dependencies = TRUE)
@@ -571,6 +571,21 @@ ggplot(all_by_year, aes(x = EVENT_YEAR, y = n)) +
        x = "Year",
        y = "Total Permits") +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))  #
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+
+
+# ALL PERMITS BY MONTH DENSITY PLOT
+ggplot(df %>% filter(EVENT_MONTH %in% toupper(month.name)),  # Remove "NA"
+       aes(x = factor(EVENT_MONTH, levels = toupper(month.name)), group = 1)) +  
+  geom_density(aes(fill = SUB_TYPE, color = SUB_TYPE), alpha = 0.4) +
+  labs(title = "Permit Submissions by Month",
+       x = "Event Month",
+       y = "Density") +
+  scale_x_discrete(expand = c(0.1, 0.1)) +  
+  scale_y_continuous(expand = c(0.1, 0.1)) +  
+  facet_wrap(~ SUB_TYPE, scales = "fixed", ncol = 2) +  
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 7))
 
 ```
+
