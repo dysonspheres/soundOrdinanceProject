@@ -464,3 +464,92 @@ nas <- df %>% filter(is.na(EVENT_MONTH))
 # This column is removed
 df %>% summarize(n())
 ```
+
+```{r}
+# GREG VISUALIZATIONS
+
+# ALL PERMITS BY MONTH
+library(ggplot2)
+permits_by_month <- df %>%
+    filter(!is.na(EVENT_MONTH)) %>%
+    count(EVENT_MONTH)
+
+permits_by_month$EVENT_MONTH <- factor(permits_by_month$EVENT_MONTH, levels = toupper(month.name))
+
+ggplot(permits_by_month, aes(x = EVENT_MONTH, y = n)) +
+    geom_bar(stat = "identity", fill = "steelblue") +
+    labs(title = "Number of Permits by Month",
+         x = "Month",
+         y = "Number of Permits") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
+
+# CONCRETE PERMITS BY MONTH
+construction_by_month <- df %>%
+    filter(!is.na(EVENT_MONTH)) %>%
+    filter(SUB_TYPE == 'Concrete Pouring') %>%
+    count(EVENT_MONTH)
+
+construction_by_month$EVENT_MONTH <- factor(permits_by_month$EVENT_MONTH, levels = toupper(month.name))
+
+ggplot(construction_by_month, aes(x = EVENT_MONTH, y = n)) +
+  geom_bar(stat = "identity", fill = "purple") +  # Bar chart with color
+  labs(title = "Number of Construction Permits by Month",
+       x = "Month",
+       y = "Number of Construction Permits") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
+# CONCERT PERMITS BY YEAR (month was missing for all concerts except 1)
+concerts_by_year <- df %>%
+    filter(!is.na(EVENT_YEAR)) %>%
+    filter(SUB_TYPE == 'Outdoor Music Venue') %>%
+    count(EVENT_YEAR)
+
+ggplot(concerts_by_year, aes(x = EVENT_YEAR, y = n)) +
+  geom_bar(stat = "identity", fill = "salmon") +  # Bar chart with color
+  labs(title = "Number of Concerts by Year",
+       x = "Year",
+       y = "Number of Concerts") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  #
+
+
+
+
+# CONCRETE PERMITS BY YEAR (month was missing for all of them)
+construction_by_year <- df %>%
+    filter(!is.na(EVENT_YEAR)) %>%
+    filter(SUB_TYPE == 'Concrete Pouring') %>%
+    count(EVENT_YEAR)
+
+ggplot(construction_by_year, aes(x = EVENT_YEAR, y = n)) +
+  geom_bar(stat = "identity", fill = "green") +  # Bar chart with color
+  labs(title = "Number of Construction Permits by Year",
+       x = "Year",
+       y = "Number of Construction Permits") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+
+
+
+
+# ALL PERMITS BY YEAR
+all_by_year <- df %>%
+    filter(!is.na(EVENT_YEAR)) %>%
+    count(EVENT_YEAR)
+
+ggplot(all_by_year, aes(x = EVENT_YEAR, y = n)) +
+  geom_bar(stat = "identity", fill = "blue") +  # Bar chart with color
+  labs(title = "Total Permits by Year",
+       x = "Year",
+       y = "Total Permits") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  #
+
+```
