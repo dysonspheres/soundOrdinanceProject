@@ -594,9 +594,20 @@ df_cap_NO_OUTLIERS <- df_cap %>% filter(CAPACITY < 10000)
 ggplot(df_cap_NO_OUTLIERS, aes(x = CAPACITY, y = time_diff)) + 
   geom_point(na.rm = TRUE)  + geom_smooth(method='lm')
 
-unique(df_cap$CAPACITY)
-df_cap %>% glimpse()
 
+# Now we are doing average time differences with decibel level
+df_dec <- df_times %>% filter(DECIBEL_LEVEL < 8000) %>% group_by(DECIBEL_LEVEL) %>% summarize(avg_time_diff = mean(time_diff), sd_time_diff = sd(time_diff))
+ggplot(df_dec, aes(x = factor(DECIBEL_LEVEL), y = avg_time_diff)) + 
+  geom_bar(stat = 'identity') + 
+  geom_errorbar(
+    aes(ymin = avg_time_diff - sd_time_diff, ymax = avg_time_diff + sd_time_diff), 
+    width = 0.2,  # Adjust error bar width
+    color = "red"  # Error bars in red
+  ) + labs(title='Average Time between Permit Issuance and Application by Month', x='Months Applied', y='Average Time to Get Permit Issued (days)')
+
+
+df_times %>% glimpse()
+unique(df_times$DECIBEL_LEVEL)
 
 ```
 
