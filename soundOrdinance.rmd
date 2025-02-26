@@ -574,7 +574,12 @@ geom_errorbar(
 ggplot(df_times, aes(x=ZIPCODE)) + geom_bar(stat = 'count')
 
 # time to get permit by capacity
+# i am going to TO_LOWERCASE capacity and make see approved load cards --> NA
+# then line graph or scatter plot with capacity and time it takes to get approved
 
+
+df_cap <- df_times %>% group_by(CAPACITY)
+unique(df_times$CAPACITY)
 
 
 ```
