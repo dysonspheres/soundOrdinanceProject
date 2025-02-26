@@ -389,8 +389,8 @@ df$END_HOURS_NOT_NEAR_HOME <- ifelse(df$END_HOURS_NOT_NEAR_HOME == "2:00", "2:00
 df$END_HOURS_NOT_NEAR_HOME <- sapply(df$END_HOURS_NOT_NEAR_HOME, convert_time) # converting column to numbers
 
 df %>% summarize(n())
-head(df)
 ```
+
 
 ```{r}
 library(dplyr)
@@ -465,5 +465,23 @@ nas <- df %>% filter(is.na(EVENT_MONTH))
 df %>% summarize(n())
 ```
 
+## Exploring the Data
+# Nneoma - Average start and End Times for Hours Not Near Home
+```{r}
+# install.packages("ggplot2", dependencies = TRUE)
+library(ggplot2)  # Load the package
 
-# Getting into Data Exploration
+unique(df$END_HOURS_NOT_NEAR_HOME)
+df %>% glimpse()
+
+# this maps every single value... idk why i did that
+# ggplot(df, aes(x = seq_along(START_HOURS_NOT_NEAR_HOME), ymin = START_HOURS_NOT_NEAR_HOME, ymax = END_HOURS_NOT_NEAR_HOME)) + geom_linerange() + geom_point(aes(y = START_HOURS_NOT_NEAR_HOME), size = 2) + geom_point(aes(y = END_HOURS_NOT_NEAR_HOME), size = 2) + scale_y_reverse() + labs(title = "Time Ranges", x = "Observation Index", y = "Hour") + theme_minimal()
+
+'''
+avg_start_not_near_home <- df %>% summarize(avg_start = mean(START_HOURS_NOT_NEAR_HOME), avg_end = mean(END_HOURS_NOT_NEAR_HOME))
+ggplot(avg_start_not_near_home, aes(ymin = avg_start, ymax = avg_end)) + geom_linerange()
+'''
+# geom_boxplot(aes(y = END_HOURS_NOT_NEAR_HOME), fill = "red", alpha = 0.5) +
+ggplot(df) + geom_boxplot(y=START_HOURS_NOT_NEAR_HOME) + labs(title = "Boxplot of Start & End Times", y = "Hour") 
+
+```
