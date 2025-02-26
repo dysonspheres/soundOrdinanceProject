@@ -503,11 +503,11 @@ ggplot(df_clean_end, aes(x = factor(END_HOURS_NOT_NEAR_HOME), fill = END_HOURS_N
 
 
 # df_clean_start %>% summarize(mean(START_HOURS_NOT_NEAR_HOME))
- df_clean_end %>% summarize(mean(END_HOURS_NOT_NEAR_HOME))
+# df_clean_end %>% summarize(mean(END_HOURS_NOT_NEAR_HOME))
 print('The average start time is 1:30PM and the average end time is 2PM')
 
 
-# time between date applied and date issued
+# time between date applied and date issued (overall)
 head(df$IN_DATE, 5) #application date
 head(df$ISSUE_DATE, 5) 
 head(df$START_DATE, 5)  # last then - not every in-issue has a start date
@@ -516,6 +516,7 @@ head(df$START_DATE, 5)  # last then - not every in-issue has a start date
 df_times <- df %>%
   mutate(time_diff = as.numeric(difftime(ISSUE_DATE, IN_DATE, units = "days")))
 
+# histogram with each bin representing 30 days
 ggplot(df_times, aes(x = time_diff)) + 
   geom_histogram(binwidth = 30, fill = "lightblue", color = "black", alpha = 0.7) + 
   labs(x = "Time Difference (Days)", y = "Frequency", title = "Histogram of Time Differences Between Application and Permit Issuance") +
@@ -525,13 +526,22 @@ ggplot(df_times, aes(x = time_diff)) +
   ) +
   theme_minimal()
 
-'''
-ggplot(df_times, aes(x = IN_DATE, y = time_diff)) + 
-  geom_line(group = 1, color = "blue") + 
-  geom_point(color = "red") +
-  labs(x = "ID", y = "Time Difference (Days)", title = "Time Difference Between Date Applied and Date Issued") +
-  theme_minimal()
-'''
+# df_times %>% summarize(mean(time_diff))
+print('The average time applicants wait for their permits to be issued is 19.6 days')
+
+# I want to see the average time difference bassed on the date applied by MONTH
+# there are supposed to be HELLA outliers so idk where they are
+df_times <- df_times %>% mutate(IN_DATE = as.Date(IN_DATE),
+    ISSUE_DATE = as.Date(ISSUE_DATE),in_mon = format(IN_DATE, "%B"), issue_mon = format(ISSUE_DATE, "%B"))
+
+df_avg_td_mon <- df_times %>% group_by(in_mon) %>% summarize(avg_time_diff = mean(time_diff))
+
+ggplot(df_avg_td_mon, aes(x=in_mon, y=avg_time_diff)) + geom_bar(stat = 'identity')
+
+#scatter plot of in month vs issued month -- will this show counts of when things get applied, and when things get issued?
+
+# time difference per SEASON, {theme by color?}
+
 
 # which person approves the quickest?
 
