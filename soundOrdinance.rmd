@@ -363,8 +363,9 @@ ggplot(avg_omv_hours, aes(x = Day, y = AvgHours)) +
 Nneoma is cleaning the values START_HOURS_NOT_NEAR_HOME, END_HOURS_NOT_NEAR_HOME, STATUS, EXPIRATION_DATE (YYYY-MM-DD), IN_DATE (YYYY-MM-DD), ISSUE_DATE, ISSUED_BY (YYYY-MM-DD), START_DATE, and has_multiple_start_dates
 
 ```{r}
-# NNEOMA
-
+# NNEOMA 
+# the time here seems wrong
+df$ISSUE_DATE <- ifelse(df$IN_DATE == "2011-11-01" & df$ISSUE_DATE == '2011-01-23', "2012-01-23", df$ISSUE_DATE)
 
 # START_HOURS_NOT_NEAR_HOME --  converted string times into numeric numbers + created subset for them
 # replaced that pending review with a NA value
@@ -497,13 +498,45 @@ ggplot(df_clean_end, aes(x = factor(END_HOURS_NOT_NEAR_HOME), fill = END_HOURS_N
   geom_bar(stat = "count", na.rm = TRUE) +
   scale_fill_gradient2(low = "darkblue", mid = "yellow", high = "darkblue", midpoint = 12) +
   theme_minimal() +
-  labs(x = "Start Hour", y = "Count", fill = "Hour of Day")
+  labs(x = "End Hour", y = "Count", fill = "Hour of Day")
 
-''''
 
-''''
 
-# histogram of day and night?
+# df_clean_start %>% summarize(mean(START_HOURS_NOT_NEAR_HOME))
+ df_clean_end %>% summarize(mean(END_HOURS_NOT_NEAR_HOME))
+print('The average start time is 1:30PM and the average end time is 2PM')
+
+
+# time between date applied and date issued
+head(df$IN_DATE, 5) #application date
+head(df$ISSUE_DATE, 5) 
+head(df$START_DATE, 5)  # last then - not every in-issue has a start date
+
+
+df_times <- df %>%
+  mutate(time_diff = as.numeric(difftime(ISSUE_DATE, IN_DATE, units = "days")))
+
+ggplot(df_times, aes(x = time_diff)) + 
+  geom_histogram(binwidth = 30, fill = "lightblue", color = "black", alpha = 0.7) + 
+  labs(x = "Time Difference (Days)", y = "Frequency", title = "Histogram of Time Differences Between Application and Permit Issuance") +
+  scale_x_continuous(
+    breaks = seq(0, max(df_times$time_diff), by = 30),  # Adjust the 'by' value to match your binwidth
+    labels = seq(0, max(df_times$time_diff), by = 30)   # Labels for each bin
+  ) +
+  theme_minimal()
+
+'''
+ggplot(df_times, aes(x = IN_DATE, y = time_diff)) + 
+  geom_line(group = 1, color = "blue") + 
+  geom_point(color = "red") +
+  labs(x = "ID", y = "Time Difference (Days)", title = "Time Difference Between Date Applied and Date Issued") +
+  theme_minimal()
+'''
+
+# which person approves the quickest?
+
+
+
 
 ```
 
