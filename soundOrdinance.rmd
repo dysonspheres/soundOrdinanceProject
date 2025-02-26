@@ -471,6 +471,8 @@ df %>% summarize(n())
 ```{r}
 # install.packages("ggplot2", dependencies = TRUE)
 library(ggplot2)  # Load the package
+library(stringr)
+
 
 df %>% glimpse()
 
@@ -577,9 +579,23 @@ ggplot(df_times, aes(x=ZIPCODE)) + geom_bar(stat = 'count')
 # i am going to TO_LOWERCASE capacity and make see approved load cards --> NA
 # then line graph or scatter plot with capacity and time it takes to get approved
 
+# removing anything that is not a number for this section
+# NO CORRELATION - so this graph is lowkey useless
+df_cap <- df_times %>% mutate(CAPACITY = tolower(CAPACITY)) %>% 
+  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "load card"), NA,CAPACITY )) %>% 
+  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "door"), NA,CAPACITY ))  %>% 
+  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "126 outside"), "126",CAPACITY ))  %>% 
+  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "211 upstairs"), "451",CAPACITY )) %>% 
+  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "133 outside"), "133",CAPACITY )) %>% mutate(CAPACITY = as.numeric(CAPACITY))
 
-df_cap <- df_times %>% group_by(CAPACITY)
-unique(df_times$CAPACITY)
+
+df_cap_NO_OUTLIERS <- df_cap %>% filter(CAPACITY < 10000)
+
+ggplot(df_cap_NO_OUTLIERS, aes(x = CAPACITY, y = time_diff)) + 
+  geom_point(na.rm = TRUE)  + geom_smooth(method='lm')
+
+unique(df_cap$CAPACITY)
+df_cap %>% glimpse()
 
 
 ```
