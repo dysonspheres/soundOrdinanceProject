@@ -605,9 +605,10 @@ ggplot(df_dec, aes(x = factor(DECIBEL_LEVEL), y = avg_time_diff)) +
     color = "red"  # Error bars in red
   ) + labs(title='Average Time between Permit Issuance and Application by Month', x='Months Applied', y='Average Time to Get Permit Issued (days)')
 
+# should i make one for start dates? 
 
-df_times %>% glimpse()
-unique(df_times$DECIBEL_LEVEL)
+# df_times %>% glimpse()
+# unique(df_times$DECIBEL_LEVEL)
 
 ```
 
