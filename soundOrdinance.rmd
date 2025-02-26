@@ -480,6 +480,9 @@ ggplot(df) +
   scale_x_discrete(labels = c("Start", "End")) + 
   labs(title = "Boxplot of Start & End Times", y = "Hour")
 
+# histogram code
+ggplot(df, aes(x=START_HOURS_NOT_NEAR_HOME)) + geom_histogram()
+
 ```
 
 
