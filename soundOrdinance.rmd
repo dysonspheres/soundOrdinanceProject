@@ -471,18 +471,14 @@ df %>% summarize(n())
 # install.packages("ggplot2", dependencies = TRUE)
 library(ggplot2)  # Load the package
 
-unique(df$END_HOURS_NOT_NEAR_HOME)
 df %>% glimpse()
 
-# this maps every single value... idk why i did that
-# ggplot(df, aes(x = seq_along(START_HOURS_NOT_NEAR_HOME), ymin = START_HOURS_NOT_NEAR_HOME, ymax = END_HOURS_NOT_NEAR_HOME)) + geom_linerange() + geom_point(aes(y = START_HOURS_NOT_NEAR_HOME), size = 2) + geom_point(aes(y = END_HOURS_NOT_NEAR_HOME), size = 2) + scale_y_reverse() + labs(title = "Time Ranges", x = "Observation Index", y = "Hour") + theme_minimal()
-
-'''
-avg_start_not_near_home <- df %>% summarize(avg_start = mean(START_HOURS_NOT_NEAR_HOME), avg_end = mean(END_HOURS_NOT_NEAR_HOME))
-ggplot(avg_start_not_near_home, aes(ymin = avg_start, ymax = avg_end)) + geom_linerange()
-'''
-# geom_boxplot(aes(y = END_HOURS_NOT_NEAR_HOME), fill = "red", alpha = 0.5) +
-ggplot(df) + geom_boxplot(y=START_HOURS_NOT_NEAR_HOME) + labs(title = "Boxplot of Start & End Times", y = "Hour") 
+# boxplot code
+ggplot(df) + 
+  geom_boxplot(aes(x = factor(1), y = START_HOURS_NOT_NEAR_HOME), fill = "blue", alpha = 0.6) + 
+  geom_boxplot(aes(x = factor(2), y = END_HOURS_NOT_NEAR_HOME), fill = "red", alpha = 0.6) + 
+  scale_x_discrete(labels = c("Start", "End")) + 
+  labs(title = "Boxplot of Start & End Times", y = "Hour")
 
 ```
 
