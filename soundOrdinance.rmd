@@ -471,6 +471,23 @@ geom_errorbar(
 # number of applications per zipcode
 ggplot(df_times, aes(x=ZIPCODE)) + geom_bar(stat = 'count')
 
+avg_dec_zip <- df_times %>% filter(DECIBEL_LEVEL < 8000) %>% group_by(ZIPCODE) %>% summarize(avg_dec = mean(DECIBEL_LEVEL, na.rm = TRUE), sd_dec = sd(DECIBEL_LEVEL, na.rm = TRUE))
+ggplot(avg_dec_zip, aes(x=ZIPCODE, y=avg_dec)) + geom_bar(stat = 'identity') + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 7))
+
+avg_dec_sfg <- df_times %>% filter(DECIBEL_LEVEL < 8000) %>% group_by(DECIBEL_LEVEL) %>% summarize(avg_cap = mean(CAPACITY, na.rm = TRUE), sd_cap = sd(CAPACITY, na.rm = TRUE))
+ggplot(avg_dec_sfg, aes(x=DECIBEL_LEVEL, y=avg_cap)) + geom_bar(stat = 'identity') + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 7)) + geom_errorbar(
+    aes(ymin = avg_cap - sd_cap, ymax = avg_cap + sd_cap), 
+    width = 0.2,  # Adjust error bar width
+    color = "red"  # Error bars in red
+  ) + labs(title='Average Time between Permit Issuance and Application by Month', x='Months Applied', y='Average Time to Get Permit Issued (days)')
+
+
+
+#df_times <- df_times %>% filter(DECIBEL_LEVEL < 8000) 
+# ggplot(df_times, aes(x=CAPACITY, y=DECIBEL_LEVEL) ) + geom_point() + xlim(0, 5000) +  ylim(0, 120)
+
+unique(df$SQUARE_FOOTAGE)
+
 # time to get permit by capacity
 # i am going to TO_LOWERCASE capacity and make see approved load cards --> NA
 # then line graph or scatter plot with capacity and time it takes to get approved
@@ -491,6 +508,9 @@ ggplot(df_dec, aes(x = factor(DECIBEL_LEVEL), y = avg_time_diff)) +
     width = 0.2,  # Adjust error bar width
     color = "red"  # Error bars in red
   ) + labs(title='Average Time between Permit Issuance and Application by Month', x='Months Applied', y='Average Time to Get Permit Issued (days)')
+
+
+
 
 # should i make one for start dates? 
 
