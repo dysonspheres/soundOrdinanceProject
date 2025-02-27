@@ -157,6 +157,24 @@ df <- df %>%
     EXISTING_ZONING == "LR-NP Neighborhood Commercial-Neighborhood Plan Combining district" ~ "LR-NP",
     EXISTING_ZONING == "SF-3-NP - Family Residence-Neighborhood Plan Combining district" ~ "SF-3-NP",
     EXISTING_ZONING == "DMU - DOWNTOWN MIXED USE" ~ "DMU",
+    EXISTING_ZONING == "SF-6 - TOWNHOME, CONDO" ~ "SF-6",
+    EXISTING_ZONING == "R&D RESEARCH & DEVELOPMENT" ~ "R&D",
+    EXISTING_ZONING == "PUD - PLANNED UNIT DEVELOPMENT" ~ "PUD",
+    EXISTING_ZONING == "P-NP Public-Neighborhood Plan Combining district" ~ "P-NP",
+    EXISTING_ZONING == "P - PUBLIC" ~ "P",
+    EXISTING_ZONING == "NO - NEIGHBOORHOOD OFFICE" ~ "NO",
+    EXISTING_ZONING == "MI - MAJOR INDUSTRY" ~ "MI",
+    EXISTING_ZONING == "MF-5 - MULTI FAMILY HIGH DENSITY" ~ "MF-5",
+    EXISTING_ZONING == "MF-4 - MULTI FAMILY MODERATE" ~ "MF-4",
+    EXISTING_ZONING == "LR - NEIGHBOORHOOD COMMERCIAL" ~ "LR",
+    EXISTING_ZONING == "LO - LIMITED OFFICE" ~ "LO",
+    EXISTING_ZONING == "LI - LIMITED INDUSTRIAL SERVICES" ~ "LI",
+    EXISTING_ZONING == "IRR - INTERIM RURAL RESIDENCE" ~ "IRR",
+    EXISTING_ZONING == "IP - INDUSTRIAL PARK" ~ "IP",
+    EXISTING_ZONING == "GO - GENERAL OFFICE" ~ "GO",
+    EXISTING_ZONING == "DR - DEVELOPMENT RESERVE" ~ "DR",
+    EXISTING_ZONING == "CR - COMMERCIAL REC" ~ "CR",
+    EXISTING_ZONING == "cbd-cure" ~ "CBD-CURE",
     TRUE ~ EXISTING_ZONING
   ))
 unique(df$EXISTING_ZONING)
@@ -714,4 +732,105 @@ ggplot(avg_omv_hours, aes(x = Day, y = AvgHours)) +
   # Angle x-axis labels for readability
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
+```
+
+```{r}
+# ESHI'S VISUALIZATIONS
+# Start to end time durations for concrete pouring
+library(ggplot2)  # Load the package
+df$START_HOURS_CONC_POUR_MON_SAT <- ifelse(df$START_HOURS_CONC_POUR_MON_SAT == -100, NA, df$START_HOURS_CONC_POUR_MON_SAT)
+df$END_HOURS_CONC_POUR_MON_SAT <- ifelse(df$END_HOURS_CONC_POUR_MON_SAT == -100, NA, df$END_HOURS_CONC_POUR_MON_SAT)
+
+df_conc_start <- df %>% filter(!is.na(START_HOURS_CONC_POUR_MON_SAT))
+df_conc_end <- df %>% filter(!is.na(END_HOURS_CONC_POUR_MON_SAT))
+
+# Box plot
+ggplot(df_conc_start) + 
+  geom_boxplot(aes(x = factor(1), y = START_HOURS_CONC_POUR_MON_SAT), fill = "blue", alpha = 0.6) + 
+  geom_boxplot(aes(x = factor(2), y = END_HOURS_CONC_POUR_MON_SAT), fill = "red", alpha = 0.6) + 
+  scale_x_discrete(labels = c("Start", "End")) + 
+  labs(title = "Boxplot of Start & End Times", y = "Hour")
+
+
+# Bar plot of start times using a gradient color scale 
+ggplot(df_conc_start, aes(x = factor(START_HOURS_CONC_POUR_MON_SAT), fill = START_HOURS_CONC_POUR_MON_SAT)) +
+  geom_bar(stat = "count", na.rm = TRUE) +
+  scale_fill_gradient2(low = "darkblue", mid = "yellow", high = "darkblue", midpoint = 12) +
+  theme_minimal() +
+  labs(x = "Start Hour", y = "Count", fill = "Hour of Day")
+
+ggplot(df_conc_end, aes(x = factor(END_HOURS_CONC_POUR_MON_SAT), fill = END_HOURS_CONC_POUR_MON_SAT)) +
+  geom_bar(stat = "count", na.rm = TRUE) +
+  scale_fill_gradient2(low = "darkblue", mid = "yellow", high = "darkblue", midpoint = 12) +
+  theme_minimal() +
+  labs(x = "End Hour", y = "Count", fill = "Hour of Day")
+
+# cleaning existing zoning
+df$EXISTING_ZONING <- ifelse(df$EXISTING_ZONING == "999 - SEE COMMENTS", NA, df$EXISTING_ZONING)
+# cleaning decibel level
+df_decibel_fixed <- df %>%
+  mutate(DECIBEL_LEVEL = case_when(
+    DECIBEL_LEVEL == 8595 ~ 85.95,
+    TRUE ~ DECIBEL_LEVEL
+  ))
+
+df_clean_decibel <- df %>% filter(!is.na(DECIBEL_LEVEL))
+df_clean_zone <- df_clean_decibel %>% filter(!is.na(EXISTING_ZONING))
+
+# plottting existing zoning and decibel level
+ggplot(df_clean_zone, aes(x = EXISTING_ZONING, y = DECIBEL_LEVEL)) +
+  geom_point() + 
+  labs(title = "Relationship Between Zones and Decibel Levels",
+       x = "Zone",
+       y = "Decibel Level") +
+  theme_minimal() + # clean theme
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylim(50, 100)
+
+# plotting existing zoning and sub type
+df_clean_type <- df %>% filter(!is.na(SUB_TYPE))
+df_zone_clean <- df_clean_type %>% filter(!is.na(EXISTING_ZONING))
+ggplot(df_zone_clean, aes(x = EXISTING_ZONING, fill = SUB_TYPE)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Distribution of Sub Types Across Zoning Areas",
+       x = "Zone",
+       y = "Count") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1), # Rotate x-axis labels for better readability
+        legend.title = element_text(size = 10))
+
+
+df_type_clean <- df_clean_decibel %>% filter(!is.na(SUB_TYPE))
+
+average_decibels <- df_type_clean %>%
+  group_by(SUB_TYPE) %>%
+  summarise(Average_DECIBEL = mean(DECIBEL_LEVEL, na.rm = TRUE), .groups = 'drop')
+
+ggplot(df_type_clean, aes(x = SUB_TYPE, y = DECIBEL_LEVEL)) +
+  geom_point(color = "blue") + # Use geom_point with some transparency
+  geom_point(data = average_decibels, aes(x = SUB_TYPE, y = Average_DECIBEL), color = "red", size = 3, shape = 18) +
+  labs(title = "Decibel Levels by SubType",
+       x = "SubType",
+       y = "Decibel Level") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylim(50, 100)
+
+# attempting to combine the zones vs decibel level
+# library(tidyverse)
+# df_separated <- df_clean_zone %>%
+#   mutate(EXISTING_ZONING = strsplit(as.character(EXISTING_ZONING), "-")) %>%
+#   unnest(EXISTING_ZONING)
+
+# zone_counts <- df_separated %>%
+#   group_by(EXISTING_ZONING, DECIBEL_LEVEL) %>%
+#   summarise(Count = n(), .groups = 'drop')
+
+# ggplot(zone_counts, aes(x = DECIBEL_LEVEL, y = Count, fill = EXISTING_ZONING)) +
+#   geom_col(position = "dodge") +
+#   labs(title = "Frequency of Zoning Types Across Decibel Levels",
+#        x = "Decibel Level",
+#        y = "Frequency") +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
