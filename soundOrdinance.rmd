@@ -408,7 +408,6 @@ df$END_HOURS_NOT_NEAR_HOME <- ifelse(df$END_HOURS_NOT_NEAR_HOME == "2:00", "2:00
 df$END_HOURS_NOT_NEAR_HOME <- sapply(df$END_HOURS_NOT_NEAR_HOME, convert_time) # converting column to numbers
 
 df %>% summarize(n())
-head(df)
 ```
 
 ```{r}
@@ -490,6 +489,8 @@ df %>% summarize(n())
 ```{r}
 # install.packages("ggplot2", dependencies = TRUE)
 library(ggplot2)  # Load the package
+library(stringr)
+
 
 df %>% glimpse()
 
@@ -524,6 +525,7 @@ ggplot(df_clean_end, aes(x = factor(END_HOURS_NOT_NEAR_HOME), fill = END_HOURS_N
 # df_clean_end %>% summarize(mean(END_HOURS_NOT_NEAR_HOME))
 print('The average start time is 1:30PM and the average end time is 2PM')
 
+# --------------------------------------------------------------------------------------
 
 # time between date applied and date issued (overall)
 head(df$IN_DATE, 5) #application date
@@ -550,7 +552,7 @@ print('The average time applicants wait for their permits to be issued is 19.6 d
 # I want to see the average time difference bassed on the date applied by MONTH
 df_times <- df_times %>% mutate(IN_DATE = as.Date(IN_DATE),
     ISSUE_DATE = as.Date(ISSUE_DATE),in_mon = format(IN_DATE, "%B"), issue_mon = format(ISSUE_DATE, "%B")) %>% 
-    mutate(in_mon = factor(in_mon, levels = month.name))
+    mutate(in_mon = factor(in_mon, levels = month.name), issue_mon = factor(issue_mon, levels = month.name))
 df_avg_td_mon <- df_times %>% group_by(in_mon) %>% summarize(avg_time_diff = mean(time_diff), sd_time_diff = sd(time_diff))
 
 ggplot(df_avg_td_mon, aes(x=in_mon, y=avg_time_diff,  fill = as.numeric(factor(in_mon, levels = month.name)))) + geom_bar(stat = 'identity') +
@@ -559,13 +561,72 @@ geom_errorbar(
     aes(ymin = avg_time_diff - sd_time_diff, ymax = avg_time_diff + sd_time_diff), 
     width = 0.2,  # Adjust error bar width
     color = "red"  # Error bars in red
-  ) 
+  ) + labs(title='Average Time between Permit Issuance and Application by Month', x='Months Applied', y='Average Time to Get Permit Issued (days)')
+
+# These are the times of the month that people apply for permits
+df_cnts = df_times %>% group_by(in_mon) %>% summarize(permit_cnt = n())
+ggplot(df_cnts, aes(x = in_mon, y = permit_cnt, fill = as.numeric(factor(in_mon, levels = month.name)))) + geom_bar(stat = 'identity') + scale_fill_gradient2(low = "blue", mid = "red", high = "blue", midpoint = 6)
++ labs('Months Where People Apply for a Permit', x='Application Months', y='Number of Permit Applications') 
+
+# These are the times of the month permits get issued
+df_iss_cnts = df_times %>% group_by(issue_mon) %>% summarize(permit_cnt = n())
+ggplot(df_iss_cnts, aes(x = issue_mon, y = permit_cnt, fill = as.numeric(factor(issue_mon, levels = month.name)))) + geom_bar(stat = 'identity') + scale_fill_gradient2(low = "blue", mid = "red", high = "blue", midpoint = 6)
++ labs('Months Where Permist get Issued', x='Issue Months', y='Number of Permit Applications') 
+
+# I COULD break it down from here but i decided to stop from now - lmk how yall feel about it later
+
+  
+# --------------------------------------------------------------------------------------
+
+df_times <- df_times %>% mutate(ZIPCODE = as.character(ZIPCODE))
+df_zips <- df_times %>% group_by(ZIPCODE) %>% summarize(avg_time_diff = mean(time_diff, na.rm = TRUE), sd_time_diff = sd(time_diff, na.rm = TRUE))
+
+# Average time by Zipcode
+ggplot(df_zips, aes(x = ZIPCODE, y = avg_time_diff)) + geom_bar(stat = 'identity') + 
+geom_errorbar(
+    aes(ymin = avg_time_diff - sd_time_diff, ymax = avg_time_diff + sd_time_diff), 
+    width = 0.2,  # Adjust error bar width
+    color = "red"  # Error bars in red
+  ) + labs(title='Average Time between Permit Issuance and Application by Month', x='Months Applied', y='Average Time to Get Permit Issued (days)')
 
 
-# which person approves the quickest?
+# number of applications per zipcode
+ggplot(df_times, aes(x=ZIPCODE)) + geom_bar(stat = 'count')
+
+# time to get permit by capacity
+# i am going to TO_LOWERCASE capacity and make see approved load cards --> NA
+# then line graph or scatter plot with capacity and time it takes to get approved
+
+# removing anything that is not a number for this section
+# NO CORRELATION - so this graph is lowkey useless
+df_cap <- df_times %>% mutate(CAPACITY = tolower(CAPACITY)) %>% 
+  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "load card"), NA,CAPACITY )) %>% 
+  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "door"), NA,CAPACITY ))  %>% 
+  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "126 outside"), "126",CAPACITY ))  %>% 
+  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "211 upstairs"), "451",CAPACITY )) %>% 
+  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "133 outside"), "133",CAPACITY )) %>% mutate(CAPACITY = as.numeric(CAPACITY))
 
 
+df_cap_NO_OUTLIERS <- df_cap %>% filter(CAPACITY < 10000)
 
+ggplot(df_cap_NO_OUTLIERS, aes(x = CAPACITY, y = time_diff)) + 
+  geom_point(na.rm = TRUE)  + geom_smooth(method='lm')
+
+
+# Now we are doing average time differences with decibel level
+df_dec <- df_times %>% filter(DECIBEL_LEVEL < 8000) %>% group_by(DECIBEL_LEVEL) %>% summarize(avg_time_diff = mean(time_diff), sd_time_diff = sd(time_diff))
+ggplot(df_dec, aes(x = factor(DECIBEL_LEVEL), y = avg_time_diff)) + 
+  geom_bar(stat = 'identity') + 
+  geom_errorbar(
+    aes(ymin = avg_time_diff - sd_time_diff, ymax = avg_time_diff + sd_time_diff), 
+    width = 0.2,  # Adjust error bar width
+    color = "red"  # Error bars in red
+  ) + labs(title='Average Time between Permit Issuance and Application by Month', x='Months Applied', y='Average Time to Get Permit Issued (days)')
+
+# should i make one for start dates? 
+
+# df_times %>% glimpse()
+# unique(df_times$DECIBEL_LEVEL)
 
 ```
 
