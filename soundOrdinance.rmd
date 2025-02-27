@@ -16,8 +16,9 @@ knit: reprex::reprex_render
 We decided to remove these columns: CASE_TYPE, FOLDER_TYPE, WORK, PERMIT_NUMBER, REFERENCEFILE, FOLDERRSN, LINK, APPLICANT_FIRST_NAME, APPLICANT_LAST_NAME, END_HOURS_MOV_VEH_MON_SAT, END_HOURS_MOV_VEH_SUN, PROPERTYRSN, START_HOURS_MOV_VEH_MON_SAT, START_HOURS_MOV_VEH_SUN, PROPX, PROPY, LOCATION, UPDATE_DATE, FOLDER_DESCRIPTION
 
 ```{r, echo=FALSE, results="hide", message="hide"}
-# install.packages("dplyr")  # this was for Nneoma, since it wasn't working for you
 library(dplyr)
+library(stringr)
+
 
 df <- read.csv("sound_ordinance_data.csv", na.strings = c("", "NA")) # ensured that blank strings are counting as NA
 
@@ -51,8 +52,21 @@ unique_values <- unique(df$EVENT_MONTH)
 # unique_values <- unique(df$OMV_TUE_START_TIME)
 unique_values
 
+# removing anything that is not a number for this section
+df <- df %>% mutate(CAPACITY = tolower(CAPACITY)) %>% 
+  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "load card"), NA,CAPACITY )) %>% 
+  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "door"), NA,CAPACITY ))  %>% 
+  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "126 outside"), "126",CAPACITY ))  %>% 
+  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "211 upstairs"), "451",CAPACITY )) %>% 
+  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "133 outside"), "133",CAPACITY )) %>% mutate(CAPACITY = as.numeric(CAPACITY))
+
+
+unique(df$CAPACITY)
 # table(df$OMV_TUE_END_TIME)
 # table(df$ISSUED_BY)
+
+
+
 
 df %>% summarize(n())
 
@@ -488,6 +502,10 @@ df %>% summarize(n())
 # Nneoma - Average start and End Times for Hours Not Near Home
 ```{r}
 # install.packages("ggplot2", dependencies = TRUE)
+# THIS IS FOR START 
+# put 
+
+# next time I'll replace with median instead of mean (bc of SD)
 library(ggplot2)  # Load the package
 library(stringr)
 
@@ -597,19 +615,10 @@ ggplot(df_times, aes(x=ZIPCODE)) + geom_bar(stat = 'count')
 # i am going to TO_LOWERCASE capacity and make see approved load cards --> NA
 # then line graph or scatter plot with capacity and time it takes to get approved
 
-# removing anything that is not a number for this section
-# NO CORRELATION - so this graph is lowkey useless
-df_cap <- df_times %>% mutate(CAPACITY = tolower(CAPACITY)) %>% 
-  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "load card"), NA,CAPACITY )) %>% 
-  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "door"), NA,CAPACITY ))  %>% 
-  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "126 outside"), "126",CAPACITY ))  %>% 
-  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "211 upstairs"), "451",CAPACITY )) %>% 
-  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "133 outside"), "133",CAPACITY )) %>% mutate(CAPACITY = as.numeric(CAPACITY))
-
 
 df_cap_NO_OUTLIERS <- df_cap %>% filter(CAPACITY < 10000)
 
-ggplot(df_cap_NO_OUTLIERS, aes(x = CAPACITY, y = time_diff)) + 
+ggplot(df_cap, aes(x = CAPACITY, y = time_diff)) + 
   geom_point(na.rm = TRUE)  + geom_smooth(method='lm')
 
 
@@ -743,6 +752,7 @@ df$END_HOURS_CONC_POUR_MON_SAT <- ifelse(df$END_HOURS_CONC_POUR_MON_SAT == -100,
 
 df_conc_start <- df %>% filter(!is.na(START_HOURS_CONC_POUR_MON_SAT))
 df_conc_end <- df %>% filter(!is.na(END_HOURS_CONC_POUR_MON_SAT))
+
 
 # Box plot
 ggplot(df_conc_start) + 
