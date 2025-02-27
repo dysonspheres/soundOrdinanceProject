@@ -251,147 +251,6 @@ df <- df %>%
 
 ```
 
-# Daniel's Exploratory Graphing
-
-```{r}
-library(ggplot2)
-library(stringr)
-
-### -----------------"Issued by" vs "Total Amount of Permits"---------------###
-
-# Save unique occurrences of ISSUED_BY and SUB_TYPE
-diff_issued_names <- unique(df$ISSUED_BY)
-diff_sub_types <- unique(df$SUB_TYPE)
-
-# Count occurrences of ISSUED_BY and SUB_TYPE
-permit_counts <- as.data.frame(table(df$ISSUED_BY, df$SUB_TYPE))
-colnames(permit_counts) <- c("ISSUED_BY", "SUB_TYPE", "Count")
-
-# Calculate and order by total permits
-permit_counts$ISSUED_BY <- factor(permit_counts$ISSUED_BY,
-                          levels = names(sort(tapply(permit_counts$Count, 
-                          permit_counts$ISSUED_BY, sum), 
-                          decreasing = TRUE)))
-
-# Create a bar plot
-ggplot(permit_counts, aes(x = ISSUED_BY, y = Count, fill = SUB_TYPE)) +
-  geom_bar(stat = "identity", position = "stack", width = 0.8) +
-  
-  # Wrap labels to a width of 10 characters
-  scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) +
-  
-  labs(title = "Total Permits Given by Each Issuer with Sub-Type Breakdown",
-       x = "Issuer",
-       y = "Total Permits",
-       fill = "Sub-Type") +
-  
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-#_____________________________________________________________________________#
-
-###---------------Average Time to get Approved by Issuer--------------------###
-
-# Calculate average approval time
-avg_days <- df %>%
-  mutate(
-    # Convert to Date type
-    IN_DATE = as.Date(IN_DATE), 
-     # Convert to Date type
-    ISSUE_DATE = as.Date(ISSUE_DATE),
-    # Calculate difference in days
-    APPROVAL_DAYS = as.numeric(ISSUE_DATE - IN_DATE)
-  ) %>%
-  group_by(ISSUED_BY) %>%
-  
-  # Calculate average days
-  summarize(AVG_DAYS = mean(APPROVAL_DAYS, na.rm = TRUE)) %>%  
-  ungroup() %>%
-  
-  # Sort by AVG_DAYS in descending order
-  arrange(desc(AVG_DAYS))  
-
-# Reorder ISSUED_BY based on AVG_DAYS
-avg_days$ISSUED_BY <- factor(avg_days$ISSUED_BY, levels = avg_days$ISSUED_BY)
-
-# Create bar plot for average approval time by issuer
-ggplot(avg_days, aes(x = ISSUED_BY, y = AVG_DAYS)) +
-  geom_bar(stat = "identity", fill = "steelblue", width = 0.7) +
-  scale_x_discrete(
-    # Wrap labels to a width of 10 characters
-    labels = function(x) str_wrap(x, width = 10)  
-  ) +
-  
-  labs(
-    title = "Average Approval Time by Issuer",
-    x = "Issuer",
-    y = "Average Approval Time (Days)"
-  ) +
-  
-  theme_minimal() +
-  theme(
-    # Angle x-axis labels for readability
-    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 0.8), 
-    # Add extra margin for label clearance
-    plot.margin = margin(1, 1, 1.5, 1, "cm")
-  )
-#_____________________________________________________________________________#
-
-###-----------------Average Start and End Times for OMV----------------------###
-
-# Create day mappings
-days <- c("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")
-day_names <- c("Monday", "Tuesday", "Wednesday", "Thursday", 
-              "Friday", "Saturday", "Sunday")
-
-# Calculate time differences
-time_diffs <- sapply(days, function(day) {
-  start_col <- paste0("OMV_", day, "_START_TIME")
-  end_col <- paste0("OMV_", day, "_END_TIME")
-  
-  # Convert to numeric
-  start_times <- as.numeric(as.character(df[[start_col]]))
-  end_times <- as.numeric(as.character(df[[end_col]]))
-  
-  # Calculate duration with overnight correction
-  diffs <- ifelse(
-    end_times < start_times,
-    (end_times + 24) - start_times,
-    end_times - start_times
-  )
-  
-  mean(diffs, na.rm = TRUE)
-})
-
-# Create plotting data frame with ordered days
-avg_omv_hours <- data.frame(
-  Day = factor(day_names, levels = day_names),
-  AvgHours = time_diffs
-)
-
-# Create the final plot with angled labels
-ggplot(avg_omv_hours, aes(x = Day, y = AvgHours)) +
-  geom_bar(stat = "identity", fill = "darkcyan", width = 0.7) +
-  # Set y-axis range to 0-24 hours
-  coord_cartesian(ylim = c(0, 24)) +  
-  
-  scale_y_continuous(
-    # Breaks every 4 hours
-    breaks = seq(0, 24, 4),  
-    # Format as "00:00" to "24:00"
-    labels = function(x) sprintf("%02d:00", x)  
-  ) +
-  
-  labs(title = "Average OMV Operational Hours by Day",
-       x = "Day of Week",
-       y = "Average Hours (24h Format)") +
-  
-  theme_minimal() +
-  # Angle x-axis labels for readability
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-```
-
 Nneoma is cleaning the values START_HOURS_NOT_NEAR_HOME, END_HOURS_NOT_NEAR_HOME, STATUS, EXPIRATION_DATE (YYYY-MM-DD), IN_DATE (YYYY-MM-DD), ISSUE_DATE, ISSUED_BY (YYYY-MM-DD), START_DATE, and has_multiple_start_dates
 
 ```{r}
@@ -497,9 +356,10 @@ nas <- df %>% filter(is.na(EVENT_MONTH))
 df %>% summarize(n())
 ```
 
-
 ### END OF DATA CLEANING. PUT ALL CODE BELOW
+
 # Nneoma - Average start and End Times for Hours Not Near Home
+
 ```{r}
 # install.packages("ggplot2", dependencies = TRUE)
 # THIS IS FOR START 
@@ -639,7 +499,6 @@ ggplot(df_dec, aes(x = factor(DECIBEL_LEVEL), y = avg_time_diff)) +
 
 ```
 
-
 ```{r}
 # GREG VISUALIZATIONS
 
@@ -740,6 +599,147 @@ ggplot(df %>% filter(EVENT_MONTH %in% toupper(month.name)),  # Remove "NA"
   facet_wrap(~ SUB_TYPE, scales = "fixed", ncol = 2) +  
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 7))
+
+```
+
+# Daniel's Exploratory Graphing
+
+```{r}
+library(ggplot2)
+library(stringr)
+
+### -----------------"Issued by" vs "Total Amount of Permits"---------------###
+
+# Save unique occurrences of ISSUED_BY and SUB_TYPE
+diff_issued_names <- unique(df$ISSUED_BY)
+diff_sub_types <- unique(df$SUB_TYPE)
+
+# Count occurrences of ISSUED_BY and SUB_TYPE
+permit_counts <- as.data.frame(table(df$ISSUED_BY, df$SUB_TYPE))
+colnames(permit_counts) <- c("ISSUED_BY", "SUB_TYPE", "Count")
+
+# Calculate and order by total permits
+permit_counts$ISSUED_BY <- factor(permit_counts$ISSUED_BY,
+                          levels = names(sort(tapply(permit_counts$Count, 
+                          permit_counts$ISSUED_BY, sum), 
+                          decreasing = TRUE)))
+
+# Create a bar plot
+ggplot(permit_counts, aes(x = ISSUED_BY, y = Count, fill = SUB_TYPE)) +
+  geom_bar(stat = "identity", position = "stack", width = 0.8) +
+  
+  # Wrap labels to a width of 10 characters
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) +
+  
+  labs(title = "Total Permits Given by Each Issuer with Sub-Type Breakdown",
+       x = "Issuer",
+       y = "Total Permits",
+       fill = "Sub-Type") +
+  
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+#_____________________________________________________________________________#
+
+###---------------Average Time to get Approved by Issuer--------------------###
+
+# Calculate average approval time
+avg_days <- df %>%
+  mutate(
+    # Convert to Date type
+    IN_DATE = as.Date(IN_DATE), 
+     # Convert to Date type
+    ISSUE_DATE = as.Date(ISSUE_DATE),
+    # Calculate difference in days
+    APPROVAL_DAYS = as.numeric(ISSUE_DATE - IN_DATE)
+  ) %>%
+  group_by(ISSUED_BY) %>%
+  
+  # Calculate average days
+  summarize(AVG_DAYS = mean(APPROVAL_DAYS, na.rm = TRUE)) %>%  
+  ungroup() %>%
+  
+  # Sort by AVG_DAYS in descending order
+  arrange(desc(AVG_DAYS))  
+
+# Reorder ISSUED_BY based on AVG_DAYS
+avg_days$ISSUED_BY <- factor(avg_days$ISSUED_BY, levels = avg_days$ISSUED_BY)
+
+# Create bar plot for average approval time by issuer
+ggplot(avg_days, aes(x = ISSUED_BY, y = AVG_DAYS)) +
+  geom_bar(stat = "identity", fill = "steelblue", width = 0.7) +
+  scale_x_discrete(
+    # Wrap labels to a width of 10 characters
+    labels = function(x) str_wrap(x, width = 10)  
+  ) +
+  
+  labs(
+    title = "Average Approval Time by Issuer",
+    x = "Issuer",
+    y = "Average Approval Time (Days)"
+  ) +
+  
+  theme_minimal() +
+  theme(
+    # Angle x-axis labels for readability
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 0.8), 
+    # Add extra margin for label clearance
+    plot.margin = margin(1, 1, 1.5, 1, "cm")
+  )
+#_____________________________________________________________________________#
+
+###-----------------Average Start and End Times for OMV----------------------###
+
+# Create day mappings
+days <- c("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")
+day_names <- c("Monday", "Tuesday", "Wednesday", "Thursday", 
+              "Friday", "Saturday", "Sunday")
+
+# Calculate time differences
+time_diffs <- sapply(days, function(day) {
+  start_col <- paste0("OMV_", day, "_START_TIME")
+  end_col <- paste0("OMV_", day, "_END_TIME")
+  
+  # Convert to numeric
+  start_times <- as.numeric(as.character(df[[start_col]]))
+  end_times <- as.numeric(as.character(df[[end_col]]))
+  
+  # Calculate duration with overnight correction
+  diffs <- ifelse(
+    end_times < start_times,
+    (end_times + 24) - start_times,
+    end_times - start_times
+  )
+  
+  mean(diffs, na.rm = TRUE)
+})
+
+# Create plotting data frame with ordered days
+avg_omv_hours <- data.frame(
+  Day = factor(day_names, levels = day_names),
+  AvgHours = time_diffs
+)
+
+# Create the final plot with angled labels
+ggplot(avg_omv_hours, aes(x = Day, y = AvgHours)) +
+  geom_bar(stat = "identity", fill = "darkcyan", width = 0.7) +
+  # Set y-axis range to 0-24 hours
+  coord_cartesian(ylim = c(0, 24)) +  
+  
+  scale_y_continuous(
+    # Breaks every 4 hours
+    breaks = seq(0, 24, 4),  
+    # Format as "00:00" to "24:00"
+    labels = function(x) sprintf("%02d:00", x)  
+  ) +
+  
+  labs(title = "Average OMV Operational Hours by Day",
+       x = "Day of Week",
+       y = "Average Hours (24h Format)") +
+  
+  theme_minimal() +
+  # Angle x-axis labels for readability
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ```
 
