@@ -715,3 +715,124 @@ ggplot(df %>% filter(EVENT_MONTH %in% toupper(month.name)),  # Remove "NA"
 
 ```
 
+```{r}
+#MAADHAV VISUALIZATIONS
+
+#Coordinate map of Lat vs Long by decibel levels
+library(ggplot2)
+library(ggmap)
+library(tidyr)
+
+decibel_df <- df %>%
+  filter(!is.na(LATITUDE) & !is.na(LONGITUDE) & !is.na(DECIBEL_LEVEL) & DECIBEL_LEVEL < 194)
+
+lat <- decibel_df$LATITUDE
+long <- decibel_df$LONGITUDE
+decibel_levels <- decibel_df$DECIBEL_LEVEL
+
+p0 <- ggplot(decibel_df, aes(x = long, y = lat, color = decibel_levels)) +
+  geom_point(size = 3, alpha = 0.7) +
+  scale_color_viridis_c(option = "plasma", limits = c(min(decibel_df$DECIBEL_LEVEL), max(decibel_df$DECIBEL_LEVEL)), oob = scales::squish) +
+  labs(title = "Most Noisy Locations", color = "Decibels") +
+  theme_minimal()
+
+print(p0)
+
+
+#Street Address vs Capacity
+clean_data <- df %>%
+  filter(!is.na(STREET_ADDRESS) & !is.na(CAPACITY))
+
+clean_data <- clean_data %>%
+  mutate(CAPACITY = as.character(CAPACITY)) %>%
+  filter(grepl("^[0-9]+$", CAPACITY))
+
+clean_data <- clean_data %>%
+  mutate(CAPACITY = as.numeric(CAPACITY))
+N <- 100
+top_capacity <- clean_data %>%
+  arrange(desc(CAPACITY)) %>%
+  slice_head(n = N)
+
+p1 <- ggplot(top_capacity, aes(x = reorder(STREET_ADDRESS, CAPACITY), y = CAPACITY)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs(title = "Top 30 Street Addresses by Capacity", x = "Street Address", y = "Capacity") +
+  theme_minimal()
+
+print(p1)
+
+top_capacity_counts <- clean_data %>%
+  arrange(desc(CAPACITY)) %>%
+  slice_head(n = N) %>%
+  count(STREET_ADDRESS, sort = TRUE)
+
+p2 <- ggplot(top_capacity_counts, aes(x = reorder(STREET_ADDRESS, n), y = n)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +  # Rotate for readability
+  labs(title = paste("Count of Street Addresses in Top", N, "Capacities"),
+       x = "Street Address", y = "Count") +
+  theme_minimal()
+
+print(p2)
+
+
+clean_data <- df %>% filter(!is.na(STREET_ADDRESS) & !is.na(DECIBEL_LEVEL) & DECIBEL_LEVEL < 194)
+
+N <- 100
+top_decibels <- clean_data %>%
+  arrange(desc(DECIBEL_LEVEL)) %>%
+  slice_head(n = N)
+
+p3 <- ggplot(top_decibels, aes(x = reorder(STREET_ADDRESS, DECIBEL_LEVEL), y = DECIBEL_LEVEL)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs(title = "Top 100 Street Addresses by Decibel Level", x = "Street Address", y = "Capacity") +
+  theme_minimal()+
+  theme(axis.text.y = element_text(size = 5, margin = margin(r = 5))) +  # Increases spacing in y-axis labels
+  scale_y_continuous(expand = expansion(mult = c(0.1, 0.7)))  # Adds space above/below bars
+
+print(p3)
+
+top_decibel_counts <- clean_data %>%
+  arrange(desc(DECIBEL_LEVEL)) %>%
+  slice_head(n = N) %>%
+  count(STREET_ADDRESS, sort = TRUE)
+
+p4 <- ggplot(top_decibel_counts, aes(x = reorder(STREET_ADDRESS, n), y = n)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +  # Rotate for readability
+  labs(title = paste("Street Addresses with most venues in Top", N, "\n for Decibel Levels"),
+       x = "Street Address", y = "Count") +
+  theme_minimal() +
+  theme(axis.text.y = element_text(size = 5, margin = margin(r = 5))) +  # Increases spacing in y-axis labels
+  scale_y_continuous(expand = expansion(mult = c(0.1, 0.7)))  # Adds space above/below bars
+
+
+print(p4)
+
+clean_data <- df %>% filter(!is.na(START_HOURS_NEAR_HOME_SUN_THUR) & !is.na(START_HOURS_NEAR_HOME_FRI_SAT))
+
+hour_counts <- clean_data %>%
+  pivot_longer(cols = c(START_HOURS_NEAR_HOME_SUN_THUR, START_HOURS_NEAR_HOME_FRI_SAT),
+               names_to = "DAY_GROUP",
+               values_to = "START_HOUR") %>%
+  group_by(DAY_GROUP, START_HOUR) %>%
+  tally() %>%
+  ungroup()
+
+hour_counts$DAY_GROUP <- factor(hour_counts$DAY_GROUP, levels = c("START_HOURS_NEAR_HOME_SUN_THUR", "START_HOURS_NEAR_HOME_FRI_SAT"), labels = c("Sun-Thurs", "Fri-Sat"))
+
+
+
+p5 <- ggplot(hour_counts, aes(x = as.factor(START_HOUR), y = n, fill = DAY_GROUP)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Start Hour Counts: Sun-Thurs vs. Fri-Sat", x = "Start Hour", y = "Count") +
+  theme_minimal() +
+  scale_fill_manual(values = c("steelblue", "firebrick")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels for clarity
+
+print(p5)
+
+
+```
