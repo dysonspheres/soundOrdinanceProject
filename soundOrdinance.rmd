@@ -361,16 +361,10 @@ df %>% summarize(n())
 # Nneoma - Average start and End Times for Hours Not Near Home
 
 ```{r}
-# install.packages("ggplot2", dependencies = TRUE)
-# THIS IS FOR START 
-# put 
-
+# THIS IS FOR START HRS NOT NEAR HOME
 # next time I'll replace with median instead of mean (bc of SD)
 library(ggplot2)  # Load the package
 library(stringr)
-
-
-df %>% glimpse()
 
 df_clean_start <- df %>% filter(!is.na(START_HOURS_NOT_NEAR_HOME))
 df_clean_end <- df %>% filter(!is.na(END_HOURS_NOT_NEAR_HOME))
@@ -380,7 +374,8 @@ ggplot(df_clean_start) +
   geom_boxplot(aes(x = factor(1), y = START_HOURS_NOT_NEAR_HOME), fill = "blue", alpha = 0.6) + 
   geom_boxplot(aes(x = factor(2), y = END_HOURS_NOT_NEAR_HOME), fill = "red", alpha = 0.6) + 
   scale_x_discrete(labels = c("Start", "End")) + 
-  labs(title = "Boxplot of Start & End Times", y = "Hour")
+  labs(title = "Boxplot of Start & End Times for Start Hours Not Near Home", y = "Hour", x="Starts and Ends")+
+  theme_minimal()
 
 
 # Bar plot of start times using a gradient color scale 
@@ -389,13 +384,15 @@ ggplot(df_clean_start, aes(x = factor(START_HOURS_NOT_NEAR_HOME), fill = START_H
   geom_bar(stat = "count", na.rm = TRUE) +
   scale_fill_gradient2(low = "darkblue", mid = "yellow", high = "darkblue", midpoint = 12) +
   theme_minimal() +
-  labs(x = "Start Hour", y = "Count", fill = "Hour of Day")
+  labs(title='Start Times for Start Hrs NOT Near Home', x = "Start Hour", y = "Count", fill = "Hour of Day")+
+  theme_minimal()
 
 ggplot(df_clean_end, aes(x = factor(END_HOURS_NOT_NEAR_HOME), fill = END_HOURS_NOT_NEAR_HOME)) +
   geom_bar(stat = "count", na.rm = TRUE) +
   scale_fill_gradient2(low = "darkblue", mid = "yellow", high = "darkblue", midpoint = 12) +
   theme_minimal() +
-  labs(x = "End Hour", y = "Count", fill = "Hour of Day")
+  labs(title='End Times for End Hrs NOT Near Home', x = "End Hour", y = "Count", fill = "Hour of Day") +
+  theme_minimal()
 
 
 
@@ -404,11 +401,6 @@ ggplot(df_clean_end, aes(x = factor(END_HOURS_NOT_NEAR_HOME), fill = END_HOURS_N
 print('The average start time is 1:30PM and the average end time is 2PM')
 
 # --------------------------------------------------------------------------------------
-
-# time between date applied and date issued (overall)
-head(df$IN_DATE, 5) #application date
-head(df$ISSUE_DATE, 5) 
-head(df$START_DATE, 5)  # last then - not every in-issue has a start date
 
 
 df_times <- df %>%
