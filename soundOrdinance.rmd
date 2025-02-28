@@ -496,6 +496,16 @@ ggplot(df_dec, aes(x = factor(DECIBEL_LEVEL), y = avg_time_diff)) +
   ) + labs(title='Average Time Before Receiving Permit by Decible Level', x='Decibel Levels', y='Average Time to Get Permit Issued (days)')  +
   theme_minimal()
 
+# approval time per subtype
+df_sub <- df_times %>% group_by(SUB_TYPE) %>% summarize(avg_time_diff = mean(time_diff), sd_time_diff = sd(time_diff))
+ggplot(df_sub, aes(x=SUB_TYPE, y=avg_time_diff)) + geom_bar(stat = 'identity') + 
+  geom_errorbar(
+    aes(ymin = avg_time_diff - sd_time_diff, ymax = avg_time_diff + sd_time_diff), 
+    width = 0.2,  # Adjust error bar width
+    color = "red"  # Error bars in red
+  ) + labs(title='Average Time Before Receiving Permit by Permit Subtype', x='Permit Subtype', y='Average Time to Get Permit Issued (days)')  +
+  theme_minimal()
+
 ```
 
 ```{r}
