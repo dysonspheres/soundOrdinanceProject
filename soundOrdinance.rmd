@@ -421,7 +421,7 @@ print('The average time applicants wait for their permits to be issued is 19.6 d
 
 # I want to see the average time difference bassed on the date applied by MONTH
 df_times <- df_times %>% mutate(IN_DATE = as.Date(IN_DATE),
-    ISSUE_DATE = as.Date(ISSUE_DATE),in_mon = format(IN_DATE, "%B"), issue_mon = format(ISSUE_DATE, "%B")) %>% 
+    ISSUE_DATE = as.Date(ISSUE_DATE),in_mon = format(IN_DATE, "%B"), issue_mon = format(ISSUE_DATE, "%B"), in_year = format(IN_DATE, "%Y" ),  issue_year = format(ISSUE_DATE, "%Y")) %>% 
     mutate(in_mon = factor(in_mon, levels = month.name), issue_mon = factor(issue_mon, levels = month.name))
 df_avg_td_mon <- df_times %>% group_by(in_mon) %>% summarize(avg_time_diff = mean(time_diff), sd_time_diff = sd(time_diff))
 
@@ -505,6 +505,11 @@ ggplot(df_sub, aes(x=SUB_TYPE, y=avg_time_diff)) + geom_bar(stat = 'identity') +
     color = "red"  # Error bars in red
   ) + labs(title='Average Time Before Receiving Permit by Permit Subtype', x='Permit Subtype', y='Average Time to Get Permit Issued (days)')  +
   theme_minimal()
+
+# DECIBELS ACROSS THE YEARS
+def_dec_yr <- df_times %>% filter(DECIBEL_LEVEL < 8000) %>% group_by(DECIBEL_LEVEL)
+def_dec_yr %>% glimpse()
+ggplot(def_dec_yr, aes(x=DECIBEL_LEVEL)) + geom_bar(stat = 'count') + labs(title='Permits with Recorded Decibels', x='Decibel Levels') + facet_wrap(~ in_year) + theme_minimal()
 
 ```
 
