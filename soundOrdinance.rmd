@@ -16,8 +16,9 @@ knit: reprex::reprex_render
 We decided to remove these columns: CASE_TYPE, FOLDER_TYPE, WORK, PERMIT_NUMBER, REFERENCEFILE, FOLDERRSN, LINK, APPLICANT_FIRST_NAME, APPLICANT_LAST_NAME, END_HOURS_MOV_VEH_MON_SAT, END_HOURS_MOV_VEH_SUN, PROPERTYRSN, START_HOURS_MOV_VEH_MON_SAT, START_HOURS_MOV_VEH_SUN, PROPX, PROPY, LOCATION, UPDATE_DATE, FOLDER_DESCRIPTION
 
 ```{r, echo=FALSE, results="hide", message="hide"}
-# install.packages("dplyr")  # this was for Nneoma, since it wasn't working for you
 library(dplyr)
+library(stringr)
+
 
 df <- read.csv("sound_ordinance_data.csv", na.strings = c("", "NA")) # ensured that blank strings are counting as NA
 
@@ -51,8 +52,21 @@ unique_values <- unique(df$EVENT_MONTH)
 # unique_values <- unique(df$OMV_TUE_START_TIME)
 unique_values
 
+# removing anything that is not a number for this section
+df <- df %>% mutate(CAPACITY = tolower(CAPACITY)) %>% 
+  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "load card"), NA,CAPACITY )) %>% 
+  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "door"), NA,CAPACITY ))  %>% 
+  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "126 outside"), "126",CAPACITY ))  %>% 
+  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "211 upstairs"), "451",CAPACITY )) %>% 
+  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "133 outside"), "133",CAPACITY )) %>% mutate(CAPACITY = as.numeric(CAPACITY))
+
+
+unique(df$CAPACITY)
 # table(df$OMV_TUE_END_TIME)
 # table(df$ISSUED_BY)
+
+
+
 
 df %>% summarize(n())
 
@@ -237,6 +251,371 @@ df <- df %>%
 
 ```
 
+Nneoma is cleaning the values START_HOURS_NOT_NEAR_HOME, END_HOURS_NOT_NEAR_HOME, STATUS, EXPIRATION_DATE (YYYY-MM-DD), IN_DATE (YYYY-MM-DD), ISSUE_DATE, ISSUED_BY (YYYY-MM-DD), START_DATE, and has_multiple_start_dates
+
+```{r}
+# NNEOMA 
+# the time here seems wrong
+df$ISSUE_DATE <- ifelse(df$IN_DATE == "2011-11-01" & df$ISSUE_DATE == '2011-01-23', "2012-01-23", df$ISSUE_DATE)
+
+# START_HOURS_NOT_NEAR_HOME --  converted string times into numeric numbers + created subset for them
+# replaced that pending review with a NA value
+df$START_HOURS_NOT_NEAR_HOME <- ifelse(df$START_HOURS_NOT_NEAR_HOME == "Pending Review", NA, df$START_HOURS_NOT_NEAR_HOME)
+df$START_HOURS_NOT_NEAR_HOME <- gsub("an", "am", df$START_HOURS_NOT_NEAR_HOME) # fixed a typo
+# changed 12:00 to 12:00PM
+df$START_HOURS_NOT_NEAR_HOME <- ifelse(df$START_HOURS_NOT_NEAR_HOME == "12:00", "12:00 PM", df$START_HOURS_NOT_NEAR_HOME)
+
+df$START_HOURS_NOT_NEAR_HOME <- sapply(df$START_HOURS_NOT_NEAR_HOME, convert_time) # converting column to numbers
+# df$START_HOURS_NOT_NEAR_HOME <- ifelse(test$START_HOURS_NOT_NEAR_HOME == -100, NA, test$START_HOURS_NOT_NEAR_HOME) #making -100 into NA
+
+# END_HOURS_NOT_NEAR_HOME - converted strings into numbers, made a subset of this data
+table(df$END_HOURS_NOT_NEAR_HOME)
+# removed pending review
+df$END_HOURS_NOT_NEAR_HOME <- ifelse(df$END_HOURS_NOT_NEAR_HOME == "Pending Review", NA, df$END_HOURS_NOT_NEAR_HOME)
+df$END_HOURS_NOT_NEAR_HOME <- gsub("A..M.", "am", df$END_HOURS_NOT_NEAR_HOME) # fixed a typo
+df$END_HOURS_NOT_NEAR_HOME <- gsub("12:00 noon", "12:00pm", df$END_HOURS_NOT_NEAR_HOME) # fixed a typo
+df$END_HOURS_NOT_NEAR_HOME <- gsub("12am & 1am", "12:00am", df$END_HOURS_NOT_NEAR_HOME) # 12AM 12AM,
+df$END_HOURS_NOT_NEAR_HOME <- gsub("12AM 12AM,", "12:00am", df$END_HOURS_NOT_NEAR_HOME) # cleaning type
+df$END_HOURS_NOT_NEAR_HOME <- ifelse(df$END_HOURS_NOT_NEAR_HOME == "2:00", "2:00PM", df$END_HOURS_NOT_NEAR_HOME) # fixing type
+
+df$END_HOURS_NOT_NEAR_HOME <- sapply(df$END_HOURS_NOT_NEAR_HOME, convert_time) # converting column to numbers
+
+df %>% summarize(n())
+```
+
+```{r}
+library(dplyr)
+# MAADHAV
+
+head(df)
+
+# ---AMPLIFIED_SOUND_DISTRICT------
+# This columns has 3,262/6,455 missing values, so we can't drop all NAs
+# Replacing with "Unknown" for now
+num_nas <- sum(is.na(df$AMPLIFIED_SOUND_DISTRICT))
+print(paste("Number of NAs:", num_nas, nrow(df)))
+df$AMPLIFIED_SOUND_DISTRICT[is.na(df$AMPLIFIED_SOUND_DISTRICT)] <- "Unknown"
+
+# Replacing "Withing 600ft of Residential" with "Residential"
+
+df <- df %>%
+  mutate(AMPLIFIED_SOUND_DISTRICT = ifelse(AMPLIFIED_SOUND_DISTRICT == "Within 600 ft of Residential", "Residential", AMPLIFIED_SOUND_DISTRICT))
+# Replacing "Warehouse District" with "Warehouse"
+df <- df %>%
+  mutate(AMPLIFIED_SOUND_DISTRICT = ifelse(AMPLIFIED_SOUND_DISTRICT == "Warehouse District", "Warehouse", AMPLIFIED_SOUND_DISTRICT))
+
+# Replacing "6th Street District" with "6th"
+df <- df %>%
+  mutate(AMPLIFIED_SOUND_DISTRICT = ifelse(AMPLIFIED_SOUND_DISTRICT == "6th Street District", "6th", AMPLIFIED_SOUND_DISTRICT))
+unique(df$AMPLIFIED_SOUND_DISTRICT)
+
+
+#----REST_51_PERCENT_FOOD_SALES-----
+# Had ~5000 missing values, can't do too much about it
+unique(df$REST_51_PERCENT_FOOD_SALES)
+num_nas <- sum(is.na(df$REST_51_PERCENT_FOOD_SALES))
+print(paste("Number of NAs:", num_nas, nrow(df)))
+
+#---SQUARE_FOOTAGE------
+# Had ~5000 missing values, exact same number as REST_51_PERCENT_FOOD_SALES
+unique(df$SQUARE_FOOTAGE)
+num_nas <- sum(is.na(df$SQUARE_FOOTAGE))
+print(paste("Number of NAs:", num_nas, nrow(df)))
+
+#----CAPACITY-----
+# Had ~5000 missing values, exact same number as REST_51_PERCENT_FOOD_SALES
+num_nas <- sum(is.na(df$CAPACITY))
+print(paste("Number of NAs:", num_nas, nrow(df)))
+
+#----DECIBEL_LEVEL-----
+# ~3000 missing values
+num_nas <- sum(is.na(df$DECIBEL_LEVEL))
+print(paste("Number of NAs:", num_nas, nrow(df)))
+unique(df$DECIBEL_LEVEL)
+
+#-----SUB_TYPE------
+# Data is clean, one category (Moving Vehicle) has only one record so I deleted it
+num_nas <- sum(is.na(df$SUB_TYPE))
+print(paste("Number of NAs:", num_nas, nrow(df)))
+counts <- df %>%
+  count(SUB_TYPE) %>%
+  arrange(desc(n))
+
+df <- df %>%
+  filter(SUB_TYPE != "Moving Vehicle")
+unique(df$SUB_TYPE)
+
+#---EVENT_MONTH-----
+# Removed 1600 missing values
+num_nas <- sum(is.na(df$EVENT_MONTH))
+print(paste("Number of NAs:", num_nas, nrow(df)))
+nas <- df %>% filter(is.na(EVENT_MONTH))
+
+#----CALENDAR_YEAR_FOLDER_CREATED------
+# This column is removed
+df %>% summarize(n())
+```
+
+### END OF DATA CLEANING. PUT ALL CODE BELOW
+
+# Nneoma - Average start and End Times for Hours Not Near Home
+
+```{r}
+# THIS IS FOR START HRS NOT NEAR HOME
+# next time I'll replace with median instead of mean (bc of SD)
+library(ggplot2)  # Load the package
+library(stringr)
+
+df_clean_start <- df %>% filter(!is.na(START_HOURS_NOT_NEAR_HOME))
+df_clean_end <- df %>% filter(!is.na(END_HOURS_NOT_NEAR_HOME))
+
+# boxplot code
+ggplot(df_clean_start) + 
+  geom_boxplot(aes(x = factor(1), y = START_HOURS_NOT_NEAR_HOME), fill = "blue", alpha = 0.6) + 
+  geom_boxplot(aes(x = factor(2), y = END_HOURS_NOT_NEAR_HOME), fill = "red", alpha = 0.6) + 
+  scale_x_discrete(labels = c("Start", "End")) + 
+  labs(title = "Boxplot of Start & End Times for Start Hours Not Near Home", y = "Hour", x="Starts and Ends")+
+  theme_minimal()
+
+
+# Bar plot of start times using a gradient color scale 
+# does NOT include cols with 0 counts - if important i can try to figure it out
+ggplot(df_clean_start, aes(x = factor(START_HOURS_NOT_NEAR_HOME), fill = START_HOURS_NOT_NEAR_HOME)) +
+  geom_bar(stat = "count", na.rm = TRUE) +
+  scale_fill_gradient2(low = "darkblue", mid = "yellow", high = "darkblue", midpoint = 12) +
+  theme_minimal() +
+  labs(title='Start Times for Start Hrs NOT Near Home', x = "Start Hour", y = "Count", fill = "Hour of Day")+
+  theme_minimal()
+
+ggplot(df_clean_end, aes(x = factor(END_HOURS_NOT_NEAR_HOME), fill = END_HOURS_NOT_NEAR_HOME)) +
+  geom_bar(stat = "count", na.rm = TRUE) +
+  scale_fill_gradient2(low = "darkblue", mid = "yellow", high = "darkblue", midpoint = 12) +
+  theme_minimal() +
+  labs(title='End Times for End Hrs NOT Near Home', x = "End Hour", y = "Count", fill = "Hour of Day") +
+  theme_minimal()
+
+
+
+# df_clean_start %>% summarize(mean(START_HOURS_NOT_NEAR_HOME))
+# df_clean_end %>% summarize(mean(END_HOURS_NOT_NEAR_HOME))
+print('The average start time is 1:30PM and the average end time is 2PM')
+
+# --------------------------------------------------------------------------------------
+
+
+df_times <- df %>%
+  mutate(time_diff = as.numeric(difftime(ISSUE_DATE, IN_DATE, units = "days")))
+
+# histogram with each bin representing 30 days
+ggplot(df_times, aes(x = time_diff)) + 
+  geom_histogram(binwidth = 30, fill = "lightblue", color = "black", alpha = 0.7) + 
+  labs(x = "Time Difference (Days)", y = "Frequency", title = "Histogram of Time Differences Between Application and Permit Issuance") +
+  scale_x_continuous(
+    breaks = seq(0, max(df_times$time_diff), by = 30),  # Adjust the 'by' value to match your binwidth
+    labels = seq(0, max(df_times$time_diff), by = 30)   # Labels for each bin
+  ) +
+  theme_minimal()
+
+# df_times %>% summarize(mean(time_diff))
+print('The average time applicants wait for their permits to be issued is 19.6 days')
+
+# I want to see the average time difference bassed on the date applied by MONTH
+df_times <- df_times %>% mutate(IN_DATE = as.Date(IN_DATE),
+    ISSUE_DATE = as.Date(ISSUE_DATE),in_mon = format(IN_DATE, "%B"), issue_mon = format(ISSUE_DATE, "%B"), in_year = format(IN_DATE, "%Y" ),  issue_year = format(ISSUE_DATE, "%Y")) %>% 
+    mutate(in_mon = factor(in_mon, levels = month.name), issue_mon = factor(issue_mon, levels = month.name))
+df_avg_td_mon <- df_times %>% group_by(in_mon) %>% summarize(avg_time_diff = mean(time_diff), sd_time_diff = sd(time_diff))
+
+ggplot(df_avg_td_mon, aes(x=in_mon, y=avg_time_diff,  fill = as.numeric(factor(in_mon, levels = month.name)))) + geom_bar(stat = 'identity') +
+scale_fill_gradient2(low = "blue", mid = "red", high = "blue", midpoint = 6) + 
+geom_errorbar(
+    aes(ymin = avg_time_diff - sd_time_diff, ymax = avg_time_diff + sd_time_diff), 
+    width = 0.2,  # Adjust error bar width
+    color = "red"  # Error bars in red
+  ) + labs(title='Average Time between Permit Issuance and Application by Month', x='Months Applied', y='Average Time to Get Permit Issued (days)') +
+  theme_minimal()
+
+# These are the times of the month that people apply for permits
+df_cnts = df_times %>% group_by(in_mon) %>% summarize(permit_cnt = n())
+ggplot(df_cnts, aes(x = in_mon, y = permit_cnt, fill = as.numeric(factor(in_mon, levels = month.name)))) + geom_bar(stat = 'identity') + scale_fill_gradient2(low = "blue", mid = "red", high = "blue", midpoint = 6) + 
+labs(title = 'Months Where People Apply for a Permit', x='Application Months', y='Number of Permit Applications') +
+  theme_minimal()
+
+# These are the times of the month permits get issued
+df_iss_cnts = df_times %>% group_by(issue_mon) %>% summarize(permit_cnt = n())
+ggplot(df_iss_cnts, aes(x = issue_mon, y = permit_cnt, fill = as.numeric(factor(issue_mon, levels = month.name)))) + geom_bar(stat = 'identity') + scale_fill_gradient2(low = "blue", mid = "red", high = "blue", midpoint = 6) + 
+labs(title='Months Where Permist get Issued', x='Issue Months', y='Number of Permit Applications') +
+  theme_minimal()
+  
+# --------------------------------------------------------------------------------------
+
+df_times <- df_times %>% mutate(ZIPCODE = as.character(ZIPCODE))
+df_zips <- df_times %>% group_by(ZIPCODE) %>% summarize(avg_time_diff = mean(time_diff, na.rm = TRUE), sd_time_diff = sd(time_diff, na.rm = TRUE))
+
+# Average time by Zipcode
+ggplot(df_zips, aes(x = ZIPCODE, y = avg_time_diff)) + geom_bar(stat = 'identity') + 
+geom_errorbar(
+    aes(ymin = avg_time_diff - sd_time_diff, ymax = avg_time_diff + sd_time_diff), 
+    width = 0.2,  # Adjust error bar width
+    color = "red"  # Error bars in red
+  ) + labs(title='Average Time between Permit Issuance and Application by Month', x='Months Applied', y='Average Time to Get Permit Issued (days)')+
+  theme_minimal()
+
+
+# number of applications per zipcode
+ggplot(df_times, aes(x=ZIPCODE)) + geom_bar(stat = 'count') + labs(title='Number of Applications Per Zip Code')+
+  theme_minimal()
+
+avg_dec_zip <- df_times %>% filter(DECIBEL_LEVEL < 8000) %>% group_by(ZIPCODE) %>% summarize(avg_dec = mean(DECIBEL_LEVEL, na.rm = TRUE), sd_dec = sd(DECIBEL_LEVEL, na.rm = TRUE))
+ggplot(avg_dec_zip, aes(x=ZIPCODE, y=avg_dec)) + geom_bar(stat = 'identity') + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 7)) + labs(title='Average Decibel Level per Zipcode', y='Average Decibel')
+  theme_minimal()
+
+avg_dec_sfg <- df_times %>% filter(DECIBEL_LEVEL < 8000) %>% group_by(DECIBEL_LEVEL) %>% summarize(avg_cap = mean(CAPACITY, na.rm = TRUE), sd_cap = sd(CAPACITY, na.rm = TRUE))
+ggplot(avg_dec_sfg, aes(x=DECIBEL_LEVEL, y=avg_cap)) + geom_bar(stat = 'identity') + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 7)) + geom_errorbar(
+    aes(ymin = avg_cap - sd_cap, ymax = avg_cap + sd_cap), 
+    width = 0.2,  # Adjust error bar width
+    color = "red"  # Error bars in red
+  ) + labs(title='Average Capacity at Each Decibel Level', x='Decibel Levels', y='Average Capacity') +
+  theme_minimal()
+
+# time to get permit by capacity
+df_cap_NO_OUTLIERS <- df_times %>% filter(CAPACITY < 10000)
+
+ggplot(df_cap_NO_OUTLIERS, aes(x = CAPACITY, y = time_diff)) + 
+  geom_point(na.rm = TRUE) + geom_smooth(method='lm') + labs(title='Capacity vs Average Time to Get Permit Issues', y='Average Time Difference (days)')  +
+  theme_minimal()
+
+
+# Now we are doing average time differences with decibel level
+df_dec <- df_times %>% filter(DECIBEL_LEVEL < 8000) %>% group_by(DECIBEL_LEVEL) %>% summarize(avg_time_diff = mean(time_diff), sd_time_diff = sd(time_diff))
+ggplot(df_dec, aes(x = factor(DECIBEL_LEVEL), y = avg_time_diff)) + 
+  geom_bar(stat = 'identity') + 
+  geom_errorbar(
+    aes(ymin = avg_time_diff - sd_time_diff, ymax = avg_time_diff + sd_time_diff), 
+    width = 0.2,  # Adjust error bar width
+    color = "red"  # Error bars in red
+  ) + labs(title='Average Time Before Receiving Permit by Decible Level', x='Decibel Levels', y='Average Time to Get Permit Issued (days)')  +
+  theme_minimal()
+
+# approval time per subtype
+df_sub <- df_times %>% group_by(SUB_TYPE) %>% summarize(avg_time_diff = mean(time_diff), sd_time_diff = sd(time_diff))
+ggplot(df_sub, aes(x=SUB_TYPE, y=avg_time_diff)) + geom_bar(stat = 'identity') + 
+  geom_errorbar(
+    aes(ymin = avg_time_diff - sd_time_diff, ymax = avg_time_diff + sd_time_diff), 
+    width = 0.2,  # Adjust error bar width
+    color = "red"  # Error bars in red
+  ) + labs(title='Average Time Before Receiving Permit by Permit Subtype', x='Permit Subtype', y='Average Time to Get Permit Issued (days)')  +
+  theme_minimal()
+
+# DECIBELS ACROSS THE YEARS
+def_dec_yr <- df_times %>% filter(DECIBEL_LEVEL < 8000) %>% group_by(DECIBEL_LEVEL)
+def_dec_yr %>% glimpse()
+ggplot(def_dec_yr, aes(x=DECIBEL_LEVEL)) + geom_bar(stat = 'count') + labs(title='Permits with Recorded Decibels', x='Decibel Levels') + facet_wrap(~ in_year) + theme_minimal()
+
+```
+
+```{r}
+# GREG VISUALIZATIONS
+
+# ALL PERMITS BY MONTH
+library(ggplot2)
+permits_by_month <- df %>%
+    filter(!is.na(EVENT_MONTH)) %>%
+    count(EVENT_MONTH)
+
+permits_by_month$EVENT_MONTH <- factor(permits_by_month$EVENT_MONTH, levels = toupper(month.name))
+
+ggplot(permits_by_month, aes(x = EVENT_MONTH, y = n)) +
+    geom_bar(stat = "identity", fill = "steelblue") +
+    labs(title = "Number of Permits by Month",
+         x = "Month",
+         y = "Number of Permits") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
+
+# CONCRETE PERMITS BY MONTH
+construction_by_month <- df %>%
+    filter(!is.na(EVENT_MONTH)) %>%
+    filter(SUB_TYPE == 'Concrete Pouring') %>%
+    count(EVENT_MONTH)
+
+construction_by_month$EVENT_MONTH <- factor(permits_by_month$EVENT_MONTH, levels = toupper(month.name))
+
+ggplot(construction_by_month, aes(x = EVENT_MONTH, y = n)) +
+  geom_bar(stat = "identity", fill = "purple") +  # Bar chart with color
+  labs(title = "Number of Construction Permits by Month",
+       x = "Month",
+       y = "Number of Construction Permits") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
+# CONCERT PERMITS BY YEAR (month was missing for all concerts except 1)
+concerts_by_year <- df %>%
+    filter(!is.na(EVENT_YEAR)) %>%
+    filter(SUB_TYPE == 'Outdoor Music Venue') %>%
+    count(EVENT_YEAR)
+
+ggplot(concerts_by_year, aes(x = EVENT_YEAR, y = n)) +
+  geom_bar(stat = "identity", fill = "salmon") +  # Bar chart with color
+  labs(title = "Number of Concerts by Year",
+       x = "Year",
+       y = "Number of Concerts") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  #
+
+
+
+
+# CONCRETE PERMITS BY YEAR (month was missing for all of them)
+construction_by_year <- df %>%
+    filter(!is.na(EVENT_YEAR)) %>%
+    filter(SUB_TYPE == 'Concrete Pouring') %>%
+    count(EVENT_YEAR)
+
+ggplot(construction_by_year, aes(x = EVENT_YEAR, y = n)) +
+  geom_bar(stat = "identity", fill = "green") +  # Bar chart with color
+  labs(title = "Number of Construction Permits by Year",
+       x = "Year",
+       y = "Number of Construction Permits") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+
+
+
+
+# ALL PERMITS BY YEAR
+all_by_year <- df %>%
+    filter(!is.na(EVENT_YEAR)) %>%
+    count(EVENT_YEAR)
+
+ggplot(all_by_year, aes(x = EVENT_YEAR, y = n)) +
+  geom_bar(stat = "identity", fill = "blue") +  # Bar chart with color
+  labs(title = "Total Permits by Year",
+       x = "Year",
+       y = "Total Permits") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+
+
+# ALL PERMITS BY MONTH DENSITY PLOT
+ggplot(df %>% filter(EVENT_MONTH %in% toupper(month.name)),  # Remove "NA"
+       aes(x = factor(EVENT_MONTH, levels = toupper(month.name)), group = 1)) +  
+  geom_density(aes(fill = SUB_TYPE, color = SUB_TYPE), alpha = 0.4) +
+  labs(title = "Permit Submissions by Month",
+       x = "Event Month",
+       y = "Density") +
+  scale_x_discrete(expand = c(0.1, 0.1)) +  
+  scale_y_continuous(expand = c(0.1, 0.1)) +  
+  facet_wrap(~ SUB_TYPE, scales = "fixed", ncol = 2) +  
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 7))
+
+```
+
 # Daniel's Exploratory Graphing
 
 ```{r}
@@ -378,362 +757,6 @@ ggplot(avg_omv_hours, aes(x = Day, y = AvgHours)) +
 
 ```
 
-Nneoma is cleaning the values START_HOURS_NOT_NEAR_HOME, END_HOURS_NOT_NEAR_HOME, STATUS, EXPIRATION_DATE (YYYY-MM-DD), IN_DATE (YYYY-MM-DD), ISSUE_DATE, ISSUED_BY (YYYY-MM-DD), START_DATE, and has_multiple_start_dates
-
-```{r}
-# NNEOMA 
-# the time here seems wrong
-df$ISSUE_DATE <- ifelse(df$IN_DATE == "2011-11-01" & df$ISSUE_DATE == '2011-01-23', "2012-01-23", df$ISSUE_DATE)
-
-# START_HOURS_NOT_NEAR_HOME --  converted string times into numeric numbers + created subset for them
-# replaced that pending review with a NA value
-df$START_HOURS_NOT_NEAR_HOME <- ifelse(df$START_HOURS_NOT_NEAR_HOME == "Pending Review", NA, df$START_HOURS_NOT_NEAR_HOME)
-df$START_HOURS_NOT_NEAR_HOME <- gsub("an", "am", df$START_HOURS_NOT_NEAR_HOME) # fixed a typo
-# changed 12:00 to 12:00PM
-df$START_HOURS_NOT_NEAR_HOME <- ifelse(df$START_HOURS_NOT_NEAR_HOME == "12:00", "12:00 PM", df$START_HOURS_NOT_NEAR_HOME)
-
-df$START_HOURS_NOT_NEAR_HOME <- sapply(df$START_HOURS_NOT_NEAR_HOME, convert_time) # converting column to numbers
-# df$START_HOURS_NOT_NEAR_HOME <- ifelse(test$START_HOURS_NOT_NEAR_HOME == -100, NA, test$START_HOURS_NOT_NEAR_HOME) #making -100 into NA
-
-# END_HOURS_NOT_NEAR_HOME - converted strings into numbers, made a subset of this data
-table(df$END_HOURS_NOT_NEAR_HOME)
-# removed pending review
-df$END_HOURS_NOT_NEAR_HOME <- ifelse(df$END_HOURS_NOT_NEAR_HOME == "Pending Review", NA, df$END_HOURS_NOT_NEAR_HOME)
-df$END_HOURS_NOT_NEAR_HOME <- gsub("A..M.", "am", df$END_HOURS_NOT_NEAR_HOME) # fixed a typo
-df$END_HOURS_NOT_NEAR_HOME <- gsub("12:00 noon", "12:00pm", df$END_HOURS_NOT_NEAR_HOME) # fixed a typo
-df$END_HOURS_NOT_NEAR_HOME <- gsub("12am & 1am", "12:00am", df$END_HOURS_NOT_NEAR_HOME) # 12AM 12AM,
-df$END_HOURS_NOT_NEAR_HOME <- gsub("12AM 12AM,", "12:00am", df$END_HOURS_NOT_NEAR_HOME) # cleaning type
-df$END_HOURS_NOT_NEAR_HOME <- ifelse(df$END_HOURS_NOT_NEAR_HOME == "2:00", "2:00PM", df$END_HOURS_NOT_NEAR_HOME) # fixing type
-
-df$END_HOURS_NOT_NEAR_HOME <- sapply(df$END_HOURS_NOT_NEAR_HOME, convert_time) # converting column to numbers
-
-df %>% summarize(n())
-```
-
-```{r}
-library(dplyr)
-# MAADHAV
-
-head(df)
-
-# ---AMPLIFIED_SOUND_DISTRICT------
-# This columns has 3,262/6,455 missing values, so we can't drop all NAs
-# Replacing with "Unknown" for now
-num_nas <- sum(is.na(df$AMPLIFIED_SOUND_DISTRICT))
-print(paste("Number of NAs:", num_nas, nrow(df)))
-df$AMPLIFIED_SOUND_DISTRICT[is.na(df$AMPLIFIED_SOUND_DISTRICT)] <- "Unknown"
-
-# Replacing "Withing 600ft of Residential" with "Residential"
-
-df <- df %>%
-  mutate(AMPLIFIED_SOUND_DISTRICT = ifelse(AMPLIFIED_SOUND_DISTRICT == "Within 600 ft of Residential", "Residential", AMPLIFIED_SOUND_DISTRICT))
-# Replacing "Warehouse District" with "Warehouse"
-df <- df %>%
-  mutate(AMPLIFIED_SOUND_DISTRICT = ifelse(AMPLIFIED_SOUND_DISTRICT == "Warehouse District", "Warehouse", AMPLIFIED_SOUND_DISTRICT))
-
-# Replacing "6th Street District" with "6th"
-df <- df %>%
-  mutate(AMPLIFIED_SOUND_DISTRICT = ifelse(AMPLIFIED_SOUND_DISTRICT == "6th Street District", "6th", AMPLIFIED_SOUND_DISTRICT))
-unique(df$AMPLIFIED_SOUND_DISTRICT)
-
-
-#----REST_51_PERCENT_FOOD_SALES-----
-# Had ~5000 missing values, can't do too much about it
-unique(df$REST_51_PERCENT_FOOD_SALES)
-num_nas <- sum(is.na(df$REST_51_PERCENT_FOOD_SALES))
-print(paste("Number of NAs:", num_nas, nrow(df)))
-
-#---SQUARE_FOOTAGE------
-# Had ~5000 missing values, exact same number as REST_51_PERCENT_FOOD_SALES
-unique(df$SQUARE_FOOTAGE)
-num_nas <- sum(is.na(df$SQUARE_FOOTAGE))
-print(paste("Number of NAs:", num_nas, nrow(df)))
-
-#----CAPACITY-----
-# Had ~5000 missing values, exact same number as REST_51_PERCENT_FOOD_SALES
-num_nas <- sum(is.na(df$CAPACITY))
-print(paste("Number of NAs:", num_nas, nrow(df)))
-
-#----DECIBEL_LEVEL-----
-# ~3000 missing values
-num_nas <- sum(is.na(df$DECIBEL_LEVEL))
-print(paste("Number of NAs:", num_nas, nrow(df)))
-unique(df$DECIBEL_LEVEL)
-
-#-----SUB_TYPE------
-# Data is clean, one category (Moving Vehicle) has only one record so I deleted it
-num_nas <- sum(is.na(df$SUB_TYPE))
-print(paste("Number of NAs:", num_nas, nrow(df)))
-counts <- df %>%
-  count(SUB_TYPE) %>%
-  arrange(desc(n))
-
-df <- df %>%
-  filter(SUB_TYPE != "Moving Vehicle")
-unique(df$SUB_TYPE)
-
-#---EVENT_MONTH-----
-# Removed 1600 missing values
-num_nas <- sum(is.na(df$EVENT_MONTH))
-print(paste("Number of NAs:", num_nas, nrow(df)))
-nas <- df %>% filter(is.na(EVENT_MONTH))
-
-#----CALENDAR_YEAR_FOLDER_CREATED------
-# This column is removed
-df %>% summarize(n())
-```
-
-
-### END OF DATA CLEANING. PUT ALL CODE BELOW
-# Nneoma - Average start and End Times for Hours Not Near Home
-```{r}
-# install.packages("ggplot2", dependencies = TRUE)
-library(ggplot2)  # Load the package
-library(stringr)
-
-
-df %>% glimpse()
-
-df_clean_start <- df %>% filter(!is.na(START_HOURS_NOT_NEAR_HOME))
-df_clean_end <- df %>% filter(!is.na(END_HOURS_NOT_NEAR_HOME))
-
-# boxplot code
-ggplot(df_clean_start) + 
-  geom_boxplot(aes(x = factor(1), y = START_HOURS_NOT_NEAR_HOME), fill = "blue", alpha = 0.6) + 
-  geom_boxplot(aes(x = factor(2), y = END_HOURS_NOT_NEAR_HOME), fill = "red", alpha = 0.6) + 
-  scale_x_discrete(labels = c("Start", "End")) + 
-  labs(title = "Boxplot of Start & End Times", y = "Hour")
-
-
-# Bar plot of start times using a gradient color scale 
-# does NOT include cols with 0 counts - if important i can try to figure it out
-ggplot(df_clean_start, aes(x = factor(START_HOURS_NOT_NEAR_HOME), fill = START_HOURS_NOT_NEAR_HOME)) +
-  geom_bar(stat = "count", na.rm = TRUE) +
-  scale_fill_gradient2(low = "darkblue", mid = "yellow", high = "darkblue", midpoint = 12) +
-  theme_minimal() +
-  labs(x = "Start Hour", y = "Count", fill = "Hour of Day")
-
-ggplot(df_clean_end, aes(x = factor(END_HOURS_NOT_NEAR_HOME), fill = END_HOURS_NOT_NEAR_HOME)) +
-  geom_bar(stat = "count", na.rm = TRUE) +
-  scale_fill_gradient2(low = "darkblue", mid = "yellow", high = "darkblue", midpoint = 12) +
-  theme_minimal() +
-  labs(x = "End Hour", y = "Count", fill = "Hour of Day")
-
-
-
-# df_clean_start %>% summarize(mean(START_HOURS_NOT_NEAR_HOME))
-# df_clean_end %>% summarize(mean(END_HOURS_NOT_NEAR_HOME))
-print('The average start time is 1:30PM and the average end time is 2PM')
-
-# --------------------------------------------------------------------------------------
-
-# time between date applied and date issued (overall)
-head(df$IN_DATE, 5) #application date
-head(df$ISSUE_DATE, 5) 
-head(df$START_DATE, 5)  # last then - not every in-issue has a start date
-
-
-df_times <- df %>%
-  mutate(time_diff = as.numeric(difftime(ISSUE_DATE, IN_DATE, units = "days")))
-
-# histogram with each bin representing 30 days
-ggplot(df_times, aes(x = time_diff)) + 
-  geom_histogram(binwidth = 30, fill = "lightblue", color = "black", alpha = 0.7) + 
-  labs(x = "Time Difference (Days)", y = "Frequency", title = "Histogram of Time Differences Between Application and Permit Issuance") +
-  scale_x_continuous(
-    breaks = seq(0, max(df_times$time_diff), by = 30),  # Adjust the 'by' value to match your binwidth
-    labels = seq(0, max(df_times$time_diff), by = 30)   # Labels for each bin
-  ) +
-  theme_minimal()
-
-# df_times %>% summarize(mean(time_diff))
-print('The average time applicants wait for their permits to be issued is 19.6 days')
-
-# I want to see the average time difference bassed on the date applied by MONTH
-df_times <- df_times %>% mutate(IN_DATE = as.Date(IN_DATE),
-    ISSUE_DATE = as.Date(ISSUE_DATE),in_mon = format(IN_DATE, "%B"), issue_mon = format(ISSUE_DATE, "%B")) %>% 
-    mutate(in_mon = factor(in_mon, levels = month.name), issue_mon = factor(issue_mon, levels = month.name))
-df_avg_td_mon <- df_times %>% group_by(in_mon) %>% summarize(avg_time_diff = mean(time_diff), sd_time_diff = sd(time_diff))
-
-ggplot(df_avg_td_mon, aes(x=in_mon, y=avg_time_diff,  fill = as.numeric(factor(in_mon, levels = month.name)))) + geom_bar(stat = 'identity') +
-scale_fill_gradient2(low = "blue", mid = "red", high = "blue", midpoint = 6) + 
-geom_errorbar(
-    aes(ymin = avg_time_diff - sd_time_diff, ymax = avg_time_diff + sd_time_diff), 
-    width = 0.2,  # Adjust error bar width
-    color = "red"  # Error bars in red
-  ) + labs(title='Average Time between Permit Issuance and Application by Month', x='Months Applied', y='Average Time to Get Permit Issued (days)')
-
-# These are the times of the month that people apply for permits
-df_cnts = df_times %>% group_by(in_mon) %>% summarize(permit_cnt = n())
-ggplot(df_cnts, aes(x = in_mon, y = permit_cnt, fill = as.numeric(factor(in_mon, levels = month.name)))) + geom_bar(stat = 'identity') + scale_fill_gradient2(low = "blue", mid = "red", high = "blue", midpoint = 6)
-+ labs('Months Where People Apply for a Permit', x='Application Months', y='Number of Permit Applications') 
-
-# These are the times of the month permits get issued
-df_iss_cnts = df_times %>% group_by(issue_mon) %>% summarize(permit_cnt = n())
-ggplot(df_iss_cnts, aes(x = issue_mon, y = permit_cnt, fill = as.numeric(factor(issue_mon, levels = month.name)))) + geom_bar(stat = 'identity') + scale_fill_gradient2(low = "blue", mid = "red", high = "blue", midpoint = 6)
-+ labs('Months Where Permist get Issued', x='Issue Months', y='Number of Permit Applications') 
-
-# I COULD break it down from here but i decided to stop from now - lmk how yall feel about it later
-
-  
-# --------------------------------------------------------------------------------------
-
-df_times <- df_times %>% mutate(ZIPCODE = as.character(ZIPCODE))
-df_zips <- df_times %>% group_by(ZIPCODE) %>% summarize(avg_time_diff = mean(time_diff, na.rm = TRUE), sd_time_diff = sd(time_diff, na.rm = TRUE))
-
-# Average time by Zipcode
-ggplot(df_zips, aes(x = ZIPCODE, y = avg_time_diff)) + geom_bar(stat = 'identity') + 
-geom_errorbar(
-    aes(ymin = avg_time_diff - sd_time_diff, ymax = avg_time_diff + sd_time_diff), 
-    width = 0.2,  # Adjust error bar width
-    color = "red"  # Error bars in red
-  ) + labs(title='Average Time between Permit Issuance and Application by Month', x='Months Applied', y='Average Time to Get Permit Issued (days)')
-
-
-# number of applications per zipcode
-ggplot(df_times, aes(x=ZIPCODE)) + geom_bar(stat = 'count')
-
-# time to get permit by capacity
-# i am going to TO_LOWERCASE capacity and make see approved load cards --> NA
-# then line graph or scatter plot with capacity and time it takes to get approved
-
-# removing anything that is not a number for this section
-# NO CORRELATION - so this graph is lowkey useless
-df_cap <- df_times %>% mutate(CAPACITY = tolower(CAPACITY)) %>% 
-  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "load card"), NA,CAPACITY )) %>% 
-  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "door"), NA,CAPACITY ))  %>% 
-  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "126 outside"), "126",CAPACITY ))  %>% 
-  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "211 upstairs"), "451",CAPACITY )) %>% 
-  mutate(CAPACITY = ifelse(str_detect(CAPACITY, "133 outside"), "133",CAPACITY )) %>% mutate(CAPACITY = as.numeric(CAPACITY))
-
-
-df_cap_NO_OUTLIERS <- df_cap %>% filter(CAPACITY < 10000)
-
-ggplot(df_cap_NO_OUTLIERS, aes(x = CAPACITY, y = time_diff)) + 
-  geom_point(na.rm = TRUE)  + geom_smooth(method='lm')
-
-
-# Now we are doing average time differences with decibel level
-df_dec <- df_times %>% filter(DECIBEL_LEVEL < 8000) %>% group_by(DECIBEL_LEVEL) %>% summarize(avg_time_diff = mean(time_diff), sd_time_diff = sd(time_diff))
-ggplot(df_dec, aes(x = factor(DECIBEL_LEVEL), y = avg_time_diff)) + 
-  geom_bar(stat = 'identity') + 
-  geom_errorbar(
-    aes(ymin = avg_time_diff - sd_time_diff, ymax = avg_time_diff + sd_time_diff), 
-    width = 0.2,  # Adjust error bar width
-    color = "red"  # Error bars in red
-  ) + labs(title='Average Time between Permit Issuance and Application by Month', x='Months Applied', y='Average Time to Get Permit Issued (days)')
-
-# should i make one for start dates? 
-
-# df_times %>% glimpse()
-# unique(df_times$DECIBEL_LEVEL)
-
-```
-
-
-```{r}
-# GREG VISUALIZATIONS
-
-# ALL PERMITS BY MONTH
-library(ggplot2)
-permits_by_month <- df %>%
-    filter(!is.na(EVENT_MONTH)) %>%
-    count(EVENT_MONTH)
-
-permits_by_month$EVENT_MONTH <- factor(permits_by_month$EVENT_MONTH, levels = toupper(month.name))
-
-ggplot(permits_by_month, aes(x = EVENT_MONTH, y = n)) +
-    geom_bar(stat = "identity", fill = "steelblue") +
-    labs(title = "Number of Permits by Month",
-         x = "Month",
-         y = "Number of Permits") +
-    theme_minimal() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-
-
-
-# CONCRETE PERMITS BY MONTH
-construction_by_month <- df %>%
-    filter(!is.na(EVENT_MONTH)) %>%
-    filter(SUB_TYPE == 'Concrete Pouring') %>%
-    count(EVENT_MONTH)
-
-construction_by_month$EVENT_MONTH <- factor(permits_by_month$EVENT_MONTH, levels = toupper(month.name))
-
-ggplot(construction_by_month, aes(x = EVENT_MONTH, y = n)) +
-  geom_bar(stat = "identity", fill = "purple") +  # Bar chart with color
-  labs(title = "Number of Construction Permits by Month",
-       x = "Month",
-       y = "Number of Construction Permits") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-
-
-# CONCERT PERMITS BY YEAR (month was missing for all concerts except 1)
-concerts_by_year <- df %>%
-    filter(!is.na(EVENT_YEAR)) %>%
-    filter(SUB_TYPE == 'Outdoor Music Venue') %>%
-    count(EVENT_YEAR)
-
-ggplot(concerts_by_year, aes(x = EVENT_YEAR, y = n)) +
-  geom_bar(stat = "identity", fill = "salmon") +  # Bar chart with color
-  labs(title = "Number of Concerts by Year",
-       x = "Year",
-       y = "Number of Concerts") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))  #
-
-
-
-
-# CONCRETE PERMITS BY YEAR (month was missing for all of them)
-construction_by_year <- df %>%
-    filter(!is.na(EVENT_YEAR)) %>%
-    filter(SUB_TYPE == 'Concrete Pouring') %>%
-    count(EVENT_YEAR)
-
-ggplot(construction_by_year, aes(x = EVENT_YEAR, y = n)) +
-  geom_bar(stat = "identity", fill = "green") +  # Bar chart with color
-  labs(title = "Number of Construction Permits by Year",
-       x = "Year",
-       y = "Number of Construction Permits") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))  
-
-
-
-
-# ALL PERMITS BY YEAR
-all_by_year <- df %>%
-    filter(!is.na(EVENT_YEAR)) %>%
-    count(EVENT_YEAR)
-
-ggplot(all_by_year, aes(x = EVENT_YEAR, y = n)) +
-  geom_bar(stat = "identity", fill = "blue") +  # Bar chart with color
-  labs(title = "Total Permits by Year",
-       x = "Year",
-       y = "Total Permits") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))  
-
-
-# ALL PERMITS BY MONTH DENSITY PLOT
-ggplot(df %>% filter(EVENT_MONTH %in% toupper(month.name)),  # Remove "NA"
-       aes(x = factor(EVENT_MONTH, levels = toupper(month.name)), group = 1)) +  
-  geom_density(aes(fill = SUB_TYPE, color = SUB_TYPE), alpha = 0.4) +
-  labs(title = "Permit Submissions by Month",
-       x = "Event Month",
-       y = "Density") +
-  scale_x_discrete(expand = c(0.1, 0.1)) +  
-  scale_y_continuous(expand = c(0.1, 0.1)) +  
-  facet_wrap(~ SUB_TYPE, scales = "fixed", ncol = 2) +  
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 7))
-
-```
-
 ```{r}
 #MAADHAV VISUALIZATIONS
 
@@ -864,6 +887,7 @@ df$END_HOURS_CONC_POUR_MON_SAT <- ifelse(df$END_HOURS_CONC_POUR_MON_SAT == -100,
 
 df_conc_start <- df %>% filter(!is.na(START_HOURS_CONC_POUR_MON_SAT))
 df_conc_end <- df %>% filter(!is.na(END_HOURS_CONC_POUR_MON_SAT))
+
 
 # Box plot
 ggplot(df_conc_start) + 
