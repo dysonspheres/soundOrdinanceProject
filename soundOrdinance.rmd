@@ -21,7 +21,6 @@ library(stringr)
 
 
 df <- read.csv("sound_ordinance_data.csv", na.strings = c("", "NA")) # ensured that blank strings are counting as NA
-
 columns_to_remove <- c(
   "CASE_TYPE", "FOLDER_TYPE", "WORK", "PERMIT_NUMBER", "REFERENCEFILE", "FOLDERRSN", "LINK",
   "APPLICANT_FIRST_NAME", "APPLICANT_LAST_NAME", "END_HOURS_MOV_VEH_MON_SAT", "END_HOURS_MOV_VEH_SUN",
@@ -256,6 +255,7 @@ Nneoma is cleaning the values START_HOURS_NOT_NEAR_HOME, END_HOURS_NOT_NEAR_HOME
 ```{r}
 # NNEOMA 
 # the time here seems wrong
+
 df$ISSUE_DATE <- ifelse(df$IN_DATE == "2011-11-01" & df$ISSUE_DATE == '2011-01-23', "2012-01-23", df$ISSUE_DATE)
 
 # START_HOURS_NOT_NEAR_HOME --  converted string times into numeric numbers + created subset for them
@@ -498,7 +498,7 @@ ggplot(df_dec, aes(x = factor(DECIBEL_LEVEL), y = avg_time_diff)) +
 
 # approval time per subtype
 df_sub <- df_times %>% group_by(SUB_TYPE) %>% summarize(avg_time_diff = mean(time_diff), sd_time_diff = sd(time_diff))
-ggplot(df_sub, aes(x=SUB_TYPE, y=avg_time_diff)) + geom_bar(stat = 'identity') + 
+ggplot(df_sub, aes(x=SUB_TYPE, y=avg_time_diff, fill=SUB_TYPE)) + geom_bar(stat = 'identity') + 
   geom_errorbar(
     aes(ymin = avg_time_diff - sd_time_diff, ymax = avg_time_diff + sd_time_diff), 
     width = 0.2,  # Adjust error bar width
@@ -510,6 +510,8 @@ ggplot(df_sub, aes(x=SUB_TYPE, y=avg_time_diff)) + geom_bar(stat = 'identity') +
 def_dec_yr <- df_times %>% filter(DECIBEL_LEVEL < 8000) %>% group_by(DECIBEL_LEVEL)
 def_dec_yr %>% glimpse()
 ggplot(def_dec_yr, aes(x=DECIBEL_LEVEL)) + geom_bar(stat = 'count') + labs(title='Permits with Recorded Decibels', x='Decibel Levels') + facet_wrap(~ in_year) + theme_minimal()
+
+unique(df$SUB_TYPE)
 
 ```
 
