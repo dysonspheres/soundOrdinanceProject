@@ -504,13 +504,37 @@ ggplot(df_dec, aes(x = factor(DECIBEL_LEVEL), y = avg_time_diff)) +
 
 # approval time per subtype
 df_sub <- df_times %>% group_by(SUB_TYPE) %>% summarize(avg_time_diff = mean(time_diff), sd_time_diff = sd(time_diff))
+'''
 ggplot(df_sub, aes(x=SUB_TYPE, y=avg_time_diff, fill=SUB_TYPE)) + geom_bar(stat = 'identity') + 
   geom_errorbar(
     aes(ymin = avg_time_diff - sd_time_diff, ymax = avg_time_diff + sd_time_diff), 
     width = 0.2,  # Adjust error bar width
     color = "red"  # Error bars in red
   ) + labs(title='Average Time Before Receiving Permit by Permit Subtype', x='Permit Subtype', y='Average Time to Get Permit Issued (days)')  +
-  theme_minimal()
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10))
+  '''
+
+ggplot(df_sub, aes(x=SUB_TYPE, y=avg_time_diff, fill=SUB_TYPE)) + 
+  geom_bar(stat = 'identity', width = 0.6) +  # Reduce bar width for better spacing
+  geom_errorbar(
+    aes(ymin = pmax(avg_time_diff - sd_time_diff, 0), ymax = avg_time_diff + sd_time_diff), 
+    width = 0.2,  
+    color = "red" ) + 
+  labs(title='Average Time Before Receiving Permit by Permit Subtype', 
+       x='Permit Subtype', 
+       y='Average Time to Get Permit Issued (days)') +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 15, hjust = 1, size = 10),  # Less rotation
+    plot.title = element_text(size = 14, face = "bold", margin=margin(b=10)),  # Reduce white space
+    legend.position = "none",
+    plot.margin = margin(10, 10, 10, 10)  # Tighten plot spacing
+  ) +
+  scale_y_continuous(limits = c(0, max(df_sub$avg_time_diff + df_sub$sd_time_diff, na.rm = TRUE) * 1.1)) +  
+  coord_cartesian(ylim = c(0, max(df_sub$avg_time_diff + df_sub$sd_time_diff, na.rm = TRUE) * 1.1)) + 
+  theme(aspect.ratio = 0.5)  # Make plot shorter
+
 
 # DECIBELS ACROSS THE YEARS
 def_dec_yr <- df_times %>% filter(DECIBEL_LEVEL < 8000) %>% group_by(DECIBEL_LEVEL)
