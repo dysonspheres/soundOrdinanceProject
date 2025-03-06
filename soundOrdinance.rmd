@@ -73,7 +73,7 @@ sum(colSums(is.na(df)))
 ```
 
 The convert_time method will be used to change hours into numbers
-
+# Nneoma's convert time method
 ```{r}
 # Nneoma's convert time method
 # Function to convert time strings to numbers - if values dont have am or pm, it will return -100
@@ -117,7 +117,7 @@ convert_time <- function(time) {
 }
 ```
 
-# Greg
+# Greg Zipcode Cleaning
 
 ```{r, echo=FALSE}
 # GREG
@@ -132,6 +132,8 @@ sum(is.na(df$COUNCIL_DISTRICT)) # Count NA values for COUNCIL_DISTRICT
 
 df %>% summarize(n())
 ```
+
+# Eshi hours near home Cleaning
 
 ```{r}
 # ESHI
@@ -252,6 +254,8 @@ df <- df %>%
 
 Nneoma is cleaning the values START_HOURS_NOT_NEAR_HOME, END_HOURS_NOT_NEAR_HOME, STATUS, EXPIRATION_DATE (YYYY-MM-DD), IN_DATE (YYYY-MM-DD), ISSUE_DATE, ISSUED_BY (YYYY-MM-DD), START_DATE, and has_multiple_start_dates
 
+# Nneoma cleaning Issue dates and In dates
+
 ```{r}
 # NNEOMA 
 # the time here seems wrong
@@ -282,6 +286,8 @@ df$END_HOURS_NOT_NEAR_HOME <- sapply(df$END_HOURS_NOT_NEAR_HOME, convert_time) #
 
 df %>% summarize(n())
 ```
+
+# Maadhav data cleaning
 
 ```{r}
 library(dplyr)
@@ -514,7 +520,7 @@ ggplot(def_dec_yr, aes(x=DECIBEL_LEVEL)) + geom_bar(stat = 'count') + labs(title
 unique(df$SUB_TYPE)
 
 ```
-
+# Greg's Exploratory Graphing
 ```{r}
 # GREG VISUALIZATIONS
 
@@ -758,7 +764,7 @@ ggplot(avg_omv_hours, aes(x = Day, y = AvgHours)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ```
-
+# Maadhav's Exploratory Graphing
 ```{r}
 #MAADHAV VISUALIZATIONS
 
@@ -879,7 +885,7 @@ p5 <- ggplot(hour_counts, aes(x = as.factor(START_HOUR), y = n, fill = DAY_GROUP
 print(p5)
 
 ```
-
+# Eshi's Exploratory Graphing
 ```{r}
 # ESHI'S VISUALIZATIONS
 # Start to end time durations for concrete pouring
