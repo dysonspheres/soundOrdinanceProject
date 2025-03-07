@@ -951,20 +951,20 @@ df_full <- full_hours %>%
 
 
 ggplot(df_full, aes(x = factor(START_HOURS_CONC_POUR_MON_SAT), y = n, fill = START_HOURS_CONC_POUR_MON_SAT)) +
-  geom_bar(stat = "identity", na.rm = TRUE) +  # Use "identity" since we already have counts
+  geom_bar(stat = "identity", na.rm = TRUE) +  
   scale_fill_gradient2(low = "darkblue", mid = "yellow", high = "darkblue", midpoint = 12) +
+  scale_y_continuous(trans = "sqrt", limits = c(0, max(df_full$n) * 1.1), expand = expansion(mult = c(0, 0.05))) +
   theme_minimal() +
-  labs(x = "Start Hour", y = "Count", fill = "Hour of Day")
-
-# Plot with the corrected dataset
+  labs(x = "Start Hour", y = "Count (sqrt scale)", fill = "Hour of Day")
 
 
-# Bar plot with manually defined colors
-ggplot(df_conc_start, aes(x = START_HOURS_CONC_POUR_MON_SAT, fill = START_HOURS_CONC_POUR_MON_SAT)) +
-  geom_bar(stat = "count", na.rm = TRUE) +
-  scale_fill_manual(values = custom_colors) +  # Apply custom gradient colors
+ggplot(df_full, aes(x = factor(START_HOURS_CONC_POUR_MON_SAT), y = n, fill = START_HOURS_CONC_POUR_MON_SAT)) +
+  geom_bar(stat = "identity", na.rm = TRUE) +  
+  scale_fill_gradient2(low = "darkblue", mid = "yellow", high = "darkblue", midpoint = 12) +
+  scale_y_continuous(trans = "sqrt", limits = c(0, max(df_full$n) * 1.1), expand = expansion(mult = c(0, 0.05))) +
   theme_minimal() +
-  labs(x = "Start Hour", y = "Count", fill = "Hour of Day")
+  labs(x = "Start Hour", y = "Count (sqrt scale)", fill = "Hour of Day")
+
 
 
 
