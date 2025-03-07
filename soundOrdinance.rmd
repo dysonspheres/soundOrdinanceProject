@@ -513,7 +513,7 @@ ggplot(df_sub, aes(x=SUB_TYPE, y=avg_time_diff, fill=SUB_TYPE)) + geom_bar(stat 
   ) + labs(title='Average Time Before Receiving Permit by Permit Subtype', x='Permit Subtype', y='Average Time to Get Permit Issued (days)')  +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10))
-  '''
+'''
 
 ggplot(df_sub, aes(x=SUB_TYPE, y=avg_time_diff, fill=SUB_TYPE)) + 
   geom_bar(stat = 'identity', width = 0.6) +  # Reduce bar width for better spacing
@@ -525,8 +525,8 @@ ggplot(df_sub, aes(x=SUB_TYPE, y=avg_time_diff, fill=SUB_TYPE)) +
        x='Permit Subtype', 
        y='Average Time to Get Permit Issued (days)') +
   theme_minimal() +
-  theme(
-    axis.text.x = element_text(angle = 15, hjust = 1, size = 10),  # Less rotation
+  theme( 
+    axis.text.x = element_text(angle = 25, hjust = 1, vjust = 1, size = 10),  # Less rotation
     plot.title = element_text(size = 14, face = "bold", margin=margin(b=10)),  # Reduce white space
     legend.position = "none",
     plot.margin = margin(10, 10, 10, 10)  # Tighten plot spacing
@@ -930,11 +930,44 @@ ggplot(df_conc_start) +
 
 
 # Bar plot of start times using a gradient color scale 
+'''
 ggplot(df_conc_start, aes(x = factor(START_HOURS_CONC_POUR_MON_SAT), fill = START_HOURS_CONC_POUR_MON_SAT)) +
   geom_bar(stat = "count", na.rm = TRUE) +
   scale_fill_gradient2(low = "darkblue", mid = "yellow", high = "darkblue", midpoint = 12) +
   theme_minimal() +
   labs(x = "Start Hour", y = "Count", fill = "Hour of Day")
+'''
+
+
+# chatGPT code to have start times include the numbers that had a count of 0
+
+full_hours <- data.frame(START_HOURS_CONC_POUR_MON_SAT = 0:23) # Create a full range of hours (0-23)
+hour_counts <- df_conc_start %>%
+  count(START_HOURS_CONC_POUR_MON_SAT)# Count occurrences of each hour in the dataset
+
+df_full <- full_hours %>%
+  left_join(hour_counts, by = "START_HOURS_CONC_POUR_MON_SAT") %>%
+  mutate(n = ifelse(is.na(n), 0, n))  # Merge with full range, replacing missing counts with 0 - Replace NAs with 0
+
+
+ggplot(df_full, aes(x = factor(START_HOURS_CONC_POUR_MON_SAT), y = n, fill = START_HOURS_CONC_POUR_MON_SAT)) +
+  geom_bar(stat = "identity", na.rm = TRUE) +  # Use "identity" since we already have counts
+  scale_fill_gradient2(low = "darkblue", mid = "yellow", high = "darkblue", midpoint = 12) +
+  theme_minimal() +
+  labs(x = "Start Hour", y = "Count", fill = "Hour of Day")
+
+# Plot with the corrected dataset
+
+
+# Bar plot with manually defined colors
+ggplot(df_conc_start, aes(x = START_HOURS_CONC_POUR_MON_SAT, fill = START_HOURS_CONC_POUR_MON_SAT)) +
+  geom_bar(stat = "count", na.rm = TRUE) +
+  scale_fill_manual(values = custom_colors) +  # Apply custom gradient colors
+  theme_minimal() +
+  labs(x = "Start Hour", y = "Count", fill = "Hour of Day")
+
+
+
 
 ggplot(df_conc_end, aes(x = factor(END_HOURS_CONC_POUR_MON_SAT), fill = END_HOURS_CONC_POUR_MON_SAT)) +
   geom_bar(stat = "count", na.rm = TRUE) +
