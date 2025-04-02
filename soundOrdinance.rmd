@@ -425,11 +425,12 @@ ggplot(df_times, aes(x = time_diff)) +
 # df_times %>% summarize(mean(time_diff))
 print('The average time applicants wait for their permits to be issued is 19.6 days')
 
-# I want to see the average time difference bassed on the date applied by MONTH
+# I want to see the median time difference bassed on the date applied by MONTH  -- changed from mean
+
 df_times <- df_times %>% mutate(IN_DATE = as.Date(IN_DATE),
     ISSUE_DATE = as.Date(ISSUE_DATE),in_mon = format(IN_DATE, "%B"), issue_mon = format(ISSUE_DATE, "%B"), in_year = format(IN_DATE, "%Y" ),  issue_year = format(ISSUE_DATE, "%Y")) %>% 
     mutate(in_mon = factor(in_mon, levels = month.name), issue_mon = factor(issue_mon, levels = month.name))
-df_avg_td_mon <- df_times %>% group_by(in_mon) %>% summarize(avg_time_diff = mean(time_diff), sd_time_diff = sd(time_diff))
+df_avg_td_mon <- df_times %>% group_by(in_mon) %>% summarize(avg_time_diff = mean(time_diff), med_time_diff = median(time_diff), sd_time_diff = sd(time_diff))
 
 ggplot(df_avg_td_mon, aes(x=in_mon, y=avg_time_diff,  fill = as.numeric(factor(in_mon, levels = month.name)))) + geom_bar(stat = 'identity') +
 scale_fill_gradient2(low = "blue", mid = "red", high = "blue", midpoint = 6) + 
@@ -510,7 +511,7 @@ ggplot(df_sub, aes(x=SUB_TYPE, y=avg_time_diff, fill=SUB_TYPE)) + geom_bar(stat 
     aes(ymin = avg_time_diff - sd_time_diff, ymax = avg_time_diff + sd_time_diff), 
     width = 0.2,  # Adjust error bar width
     color = "red"  # Error bars in red
-  ) + labs(title='Average Time Before Receiving Permit by Permit Subtype', x='Permit Subtype', y='Average Time to Get Permit Issued (days)')  +
+  ) + labs(title=Average Time Before Receiving Permit by Permit Subtype, x='Permit Subtype', y='Average Time to Get Permit Issued (days)')  +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10))
 '''
