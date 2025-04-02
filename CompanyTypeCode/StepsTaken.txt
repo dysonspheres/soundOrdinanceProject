@@ -1,0 +1,7 @@
+Downloaded fresh CSV table from the Sound Permits website
+Removed unneeded columns and kept: SUB_TYPE, FOLDER_DESCRIPTION, APPLICANT_ORGANIZATION
+Removed confusing naming for APPLICANT_ORGANIZATION like websites and duplicate names
+Turn the APPLICANT_ORGANIZATION column into a text file
+Used Gemini 2.5 to label the data itself by using the integrated Google search
+Gave the prompt such as "Given the data, label the data with company generic type for "COMPANY_TYPES" and create a text file for the output
+Put the new data from the text file, match the generic type labels to the APPLICANT_ORGANIZATION names in alphabetical order, create new column COMPANY_TYPES and input the generic types 
