@@ -2,7 +2,7 @@ import csv
 import os
 
 # --- Configuration ---
-input_csv_filename = 'Cleaned_SoundOrdinancePermits.csv'
+input_csv_filename = 'CleanedSoundOrdinancePermits.csv'
 lookup_txt_filename = 'companyTypes.txt' # File containing "Company Name: Type"
 output_csv_filename = 'Updated_SoundOrdinancePermits.csv'
 applicant_org_column_name = 'APPLICANT_ORGANIZATION'
