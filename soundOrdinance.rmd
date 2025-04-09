@@ -1050,3 +1050,10 @@ ggplot(df_type_clean, aes(x = SUB_TYPE, y = DECIBEL_LEVEL)) +
 #   theme_minimal() +
 #   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
+```{r}
+
+df_times %>% glimpse()
+write.csv(df_times, "df_times_cleaned.csv", row.names = FALSE)
+
+```
