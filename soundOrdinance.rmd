@@ -422,6 +422,45 @@ ggplot(df_times, aes(x = time_diff)) +
   ) +
   theme_minimal()
 
+ggplot(df_times, aes(x = time_diff)) + 
+  geom_histogram(binwidth = 30, fill = "#76B5C5", color = "black", alpha = 0.8, boundary = 0) + 
+  labs(
+    x = "Time Difference (Days)", 
+    y = "Frequency", 
+    title = "Distribution of Time Differences (Application to Issuance)"
+  ) +
+  scale_x_continuous(
+    limits = c(0, 240),
+    breaks = seq(0, 240, by = 30),
+    labels = seq(0, 240, by = 30)
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 14, hjust = 0.5),
+    axis.title = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
+ggplot(df_times, aes(x = time_diff)) + 
+  geom_histogram(binwidth = 30, fill = "#76B5C5", color = "black", alpha = 0.8, boundary = 0) + 
+  labs(
+    x = "Time Difference (Days)", 
+    y = "Frequency", 
+    title = "Distribution of Time Differences (Application to Issuance)"
+  ) +
+  scale_x_continuous(
+    limits = c(0, 240),
+    breaks = seq(0, 240, by = 30),
+    labels = seq(0, 240, by = 30)
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", size = 14, hjust = 0.5),
+    axis.title = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    aspect.ratio = 0.4  # adjust this value to make it wider
+  )
+
 # df_times %>% summarize(mean(time_diff))
 print('The average time applicants wait for their permits to be issued is 19.6 days')
 
@@ -541,13 +580,14 @@ ggplot(df_sub, aes(x=SUB_TYPE, y=avg_time_diff, fill=SUB_TYPE)) +
   coord_cartesian(ylim = c(0, max(df_sub$avg_time_diff + df_sub$sd_time_diff, na.rm = TRUE) * 1.1)) + 
   theme(aspect.ratio = 0.5)  # Make plot shorter
 
-
+'''
 # DECIBELS ACROSS THE YEARS
 def_dec_yr <- df_times %>% filter(DECIBEL_LEVEL < 8000) %>% group_by(DECIBEL_LEVEL)
 def_dec_yr %>% glimpse()
 ggplot(def_dec_yr, aes(x=DECIBEL_LEVEL)) + geom_bar(stat = 'count') + labs(title='Permits with Recorded Decibels', x='Decibel Levels') + facet_wrap(~ in_year) + theme_minimal()
 
 unique(df$SUB_TYPE)
+'''
 
 ```
 # Greg's Exploratory Graphing
