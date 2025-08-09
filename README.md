@@ -48,6 +48,10 @@ Austin, Texas is home to nearly 1 million people, and with increasing population
 - **Food service experiences longest delays**: Average wait time of ~45 days
 - **Construction companies get fastest processing**: Average processing time of <1 day
 
+<p align="center">
+  <img src="https://github.com/dysonspheres/soundOrdinanceProject/blob/3d5231e40558443d4f7081a2e298d26470130d12/media/data_modeling.gif" />
+</p>
+
 ## 🛠️ Methods & Models
 
 ### Data Preprocessing
@@ -73,11 +77,14 @@ Austin, Texas is home to nearly 1 million people, and with increasing population
 - Geographic clustering analysis
 - Identified 3 main clusters (limited by data composition)
 
+<p align="center">
+  <img src="https://github.com/dysonspheres/soundOrdinanceProject/blob/3d5231e40558443d4f7081a2e298d26470130d12/media/machine_learning.gif" />
+</p>
+
 ## 📁 Project Structure
 
 ```
-austin-sound-permits/
-├── README.md
+soundOrdinanceProject/
 ├── CompanyTypeCode/                           # Company type prediction model code
 │   ├── AddCompanyTypeToCSV.py                 # Add company type classifications to the permit data code
 │   ├── CleanedSoundOrdinancePermits.csv       # Cleaned dataset for script using
@@ -93,6 +100,8 @@ austin-sound-permits/
 │   ├── Final-Report.pdf                       # Comprehensive project report
 │   ├── Sound-Ordinance-Data-Exploration.pdf   # Initial data exploration findings
 │   └── Sound-Ordinance-Modelling.pdf          # Machine learning analysis
+├── Reports/                                   # Media files for README.md
+├── README.md
 ├── df_times_cleaned.csv                       # Cleaned dataset with processed time data
 ├── soundOrdinance.md                          # Additional project documentation
 ├── soundOrdinanceModel.ipynb                  # Machine learning model development
@@ -106,8 +115,8 @@ austin-sound-permits/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/[username]/austin-sound-permits
-   cd SOUNDORDINANCEPROJECT
+   git clone https://github.com/dysonspheres/soundOrdinanceProject.git
+   cd soundOrdinanceProject
    ```
 
 2. **Install dependencies**
@@ -115,24 +124,17 @@ austin-sound-permits/
    pip install pandas scikit-learn matplotlib seaborn jupyter
    ```
 
-3. **Run the data processing pipeline**
-   ```bash
-   # Clean and process the data
-   python CompanyTypeCode/DataClean.py
-   python CompanyTypeCode/AddCompanyTypetoCSV.py
-   ```
-
-4. **Run the analysis**
+3. **Run the analysis**
    ```bash
    # Main analysis notebooks
-   jupyter notebook Reports/soundOrdinanceModel.ipynb
-   jupyter notebook Reports/zipcode.ipynb
+   jupyter notebook soundOrdinanceModel.ipynb
+   jupyter notebook zipcode.ipynb
    jupyter notebook CompanyTypeCode/CompanyTypePrediction.ipynb
    ```
 
 5. **Access the data**
    - Download the dataset from [City of Austin Open Data Portal](https://data.austintexas.gov/Recreation-and-Culture/Sound-Ordinance-Permits/ryu3-tuin/about_data)
-   - Place the raw data in the `Reports/` directory as `sound_ordinance_data.csv`
+   - Place the raw data in as `sound_ordinance_data.csv`
 
 ## 🎯 Policy Implications
 
