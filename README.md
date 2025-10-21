@@ -2,17 +2,17 @@
 
 A comprehensive data analysis and machine learning project examining sound ordinance permits in Austin, Texas to understand permit processing patterns, approval times, and factors influencing the city's noise management policies.
 
-## 📋 Project Overview
+## Project Overview
 
 Austin, Texas is home to nearly 1 million people, and with increasing population density, effective noise management is crucial for public health and quality of life. This project analyzes sound ordinance permit data to understand how the city handles noise management and what factors influence permit processing times.
 
-### 🎯 Research Questions
+### Research Questions
 
 1. **How do the organization applying and the event subtype influence how quickly a permit is issued?**
 2. **What features influence issuance time?**
 3. **Are there shared factors between subtypes that could help predict the likely subtype of an event?**
 
-## 📊 Dataset
+## Dataset
 
 - **Source**: City of Austin Open Data Portal
 - **Original Size**: 67 columns, 6,730 rows
@@ -28,23 +28,23 @@ Austin, Texas is home to nearly 1 million people, and with increasing population
 - Decibel levels and venue capacity
 - Applicant organization information
 
-## 🔍 Key Findings
+## Key Findings
 
-### 🏗️ Construction Bias
+### Construction Bias
 - **Construction permits are prioritized**: Concrete pouring permits have the shortest approval times (often same-day approval)
 - **Music venues face delays**: Outdoor music venue permits take an average of ~70 days to process
 - **Policy implication**: Despite Austin's identity as a live music hub, construction activities are prioritized over cultural events
 
-### 🌍 Geographic Patterns
+### Geographic Patterns
 - **Location has minimal impact**: Geographic location alone is not a strong predictor of approval times
 - **No population density correlation**: No meaningful correlation between population density and decibel levels across the city
 
-### 🗓️ Seasonal Trends
+### Seasonal Trends
 - **Concrete pouring peaks**: Spring and summer months see the highest volume of construction permits
 - **Timing optimization**: Construction permits typically occur at night (12 AM - 6 AM) for optimal weather conditions
 - **Event-specific patterns**: Advertising permits spike in March (Q1 deadlines), government permits increase during election seasons
 
-### 🏢 Company Type Impact
+### Company Type Impact
 - **Food service experiences longest delays**: Average wait time of ~45 days
 - **Construction companies get fastest processing**: Average processing time of <1 day
 
@@ -52,7 +52,7 @@ Austin, Texas is home to nearly 1 million people, and with increasing population
   <img src="https://github.com/dysonspheres/soundOrdinanceProject/blob/3d5231e40558443d4f7081a2e298d26470130d12/media/data_modeling.gif" />
 </p>
 
-## 🛠️ Methods & Models
+## Methods & Models
 
 ### Data Preprocessing
 - Removed 24 irrelevant/redundant columns
@@ -81,7 +81,7 @@ Austin, Texas is home to nearly 1 million people, and with increasing population
   <img src="https://github.com/dysonspheres/soundOrdinanceProject/blob/3d5231e40558443d4f7081a2e298d26470130d12/media/machine_learning.gif" />
 </p>
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 soundOrdinanceProject/
@@ -111,7 +111,7 @@ soundOrdinanceProject/
 
 ```
 
-## 🚀 How to Run
+## How to Run
 
 1. **Clone the repository**
    ```bash
@@ -136,22 +136,7 @@ soundOrdinanceProject/
    - Download the dataset from [City of Austin Open Data Portal](https://data.austintexas.gov/Recreation-and-Culture/Sound-Ordinance-Permits/ryu3-tuin/about_data)
    - Place the raw data in as `sound_ordinance_data.csv`
 
-## 🎯 Policy Implications
-
-### Recommendations
-1. **Dynamic Prioritization**: Implement seasonal permit prioritization strategies
-   - Favor construction permits during spring peak season
-   - Support outdoor music venue permits during summer/fall event seasons
-
-2. **Resource Allocation**: Balance development goals with cultural preservation
-   - Allocate additional resources for processing music venue permits
-   - Streamline approval processes for cultural events
-
-3. **Data Quality Improvement**: Enhance record-keeping practices
-   - Standardize missing value handling for decibel levels and capacity
-   - Implement consistent permit status tracking
-
-## 👥 Contributors
+## Contributors
 
 - **Eshi Kohli** - Data cleaning, decibel vs location analysis, linear regression modeling
 - **Maadhav Kothuri** - Data preprocessing, determined prediction factors, random forest modeling
@@ -159,17 +144,12 @@ soundOrdinanceProject/
 - **Nneoma Onochie** - Time conversion functions, application time analysis, application time factors, linear and polynomial regression modeling
 - **Greg Zachariah** - Data cleaning, permit type seasonal analysis, application time factors, k-mean and random forest modeling
 
-## 🤖 Technology Used
+## Technology Used
 
 - **Programming**: Python (pandas, scikit-learn, matplotlib, seaborn)
 - **Machine Learning**: Linear/Polynomial Regression, Random Forest, K-Means
 - **Data Processing**: LLM integration (Gemini 2.5) for company categorization
 - **Analysis**: Jupyter Notebooks, R Markdown
-
-
-## 🏛️ Responsible Research & Innovation
-
-This project considers the impact on multiple stakeholders, including city officials, venue owners, musicians, and Austin residents. Our findings aim to support data-driven policy decisions that balance urban development with Austin's cultural identity as the "Live Music Capital of the World."
 
 ***
 
